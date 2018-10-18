@@ -45,7 +45,7 @@ etc. etc. most of the UX has been straightened out.
 # Protocol
 ### Warning: This is not safe without the fraud proofs. Read full paper.
 
-##Deposit
+## Deposit
 
 1. Account A transfers quantity N of asset Z to plasma contract C.
 2. C computes the designated G-block G in which this deposit would be committed on the plasma sidechain.
@@ -74,6 +74,6 @@ etc. etc. most of the UX has been straightened out.
 4. After k G-blocks, A submits proof of unchanged balance in the unconfirmed G-block Gi+k. (e∈G.balanceRoot;e∈Gi+k.balanceRoot).
 5. C transfers balance of Z to A on main chain and marks(A, Z) as Exited by storing ExitBlock(A, Z) =Gi+k thus preventing all further activity for(A, Z).
 
-## See full paper for rest.
+### See full paper for rest.
 
 
