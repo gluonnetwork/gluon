@@ -1,0 +1,22 @@
+\begin{tikzpicture}[->,>=stealth',auto,node distance=3cm,
+  thick,main node/.style={circle,draw,font=\sffamily\Large\bfseries}]
+  
+  \node[main node,violet,line width=1mm,fill=lightgray,anchor=east] at (0,0) (o) {};
+  \node[anchor=east,violet] at (-0.5,0) (x) {$Origin$};
+  \node[main node,fill=red,anchor=west] at (3,1) (a) {};
+  \node[main node,fill=black!60!green,anchor=west] at (3,0) (b) {};
+  \node[main node,fill=blue,anchor=west] at (3,-1) (c) {};
+  \node[main node,fill=teal!60,anchor=west] at (6,0.5) (d) {};
+  \node[main node,fill=orange,anchor=west] at (6,-0.5) (e) {};
+  \node[anchor=west] at (9,0) (f) {};
+  \node[anchor=west] at (9,-1) (g) {};
+  \draw[->,violet] (o) .. controls ([xshift=2cm] o) and ([xshift=-2cm] a) .. (a);
+  \draw[->,violet] (o) .. controls ([xshift=2cm] o) and ([xshift=-2cm] b) .. (b);
+  \draw[->,violet] (o) .. controls ([xshift=2cm] o) and ([xshift=-2cm] c) .. (c);
+  \draw[->,black!60!green] (b) .. controls ([xshift=2cm] b) and ([xshift=-2cm] d) .. (d);
+  \draw[->,black!60!green] (b) .. controls ([xshift=2cm] b) and ([xshift=-2cm] e) .. (e);
+  \draw[->,red] (a) .. controls ([xshift=2cm] a)  .. (d);
+  \draw[->,red] (a) .. controls ([xshift=2cm] a)  .. (e);
+  \draw[->,orange] (e) .. controls ([xshift=2cm] e) and ([xshift=-2cm] f) .. (f);
+  \draw[->,orange] (e) .. controls ([xshift=2cm] e) and ([xshift=-2cm] g) .. (g);
+\end{tikzpicture}

@@ -1,0 +1,36 @@
+\begin{tikzpicture}[->,>=stealth',auto,node distance=7mm,
+  thick,main node/.style={circle,draw,font=\sffamily\large\bfseries}]
+  
+  \node[main node,violet,line width=1mm,fill=lightgray,anchor=east] (o) {0};
+    \node[left=0mm of o,anchor=east,violet] (x) {$Origin$};
+  \node[main node,above right=1cm and 3cm of o,fill=red,anchor=west] (S1) {\color{white}1};
+  \node[main node,below right=1cm and 3cm of o,fill=blue,anchor=west] (S2) {\color{white}2};
+  \node[main node,above right=5mm and 3cm of S1,fill=red,anchor=west] (S3) {\color{white}3};
+  \node[main node,below right=5mm and 3cm of S1,fill=red,anchor=west] (S4) {\color{white}4};
+  \node[main node,above right=5mm and 3cm of S2,fill=blue,anchor=west] (S5) {\color{white}5};
+  \node[main node,below right=5mm and 3cm of S2,fill=blue,anchor=west] (S6) {\color{white}6};
+  \node[main node,right=3cm of S3,fill=red,anchor=west] (S7) {\color{white}7};
+  \node[main node,right=3cm of S4,fill=red,anchor=west] (S8) {\color{white}8};
+  \node[main node,right=3cm of S5,fill=blue,anchor=west] (S9) {\color{white}9};
+  \node[main node,right=3cm of S6,fill=blue,anchor=west] (S10) {\color{white}\small 10};
+  \node[above=of S1,anchor=north] {\color{red}$A_1\color{black!10!brown}Z_1$};
+  \node[below=of S2,anchor=south] {\color{blue}$A_2\color{black!60!green}Z_2$};
+  \node[above=of S3,anchor=north] {\color{red}$A_1\color{black!10!brown}Z_1$};
+  \node[above=of S4,anchor=north] {\color{red}$A_1\color{black!60!green}Z_2$};
+  \node[above=of S7,anchor=north] {\color{red}$A_1\color{black!10!brown}Z_1$};
+  \node[above=of S8,anchor=north] {\color{red}$A_1\color{black!60!green}Z_2$};
+  \node[below=of S5,anchor=south] {\color{red}$A_2\color{black!10!brown}Z_1$};
+  \node[below=of S6,anchor=south] {\color{red}$A_2\color{black!60!green}Z_2$};
+  \node[below=of S9,anchor=south] {\color{red}$A_2\color{black!10!brown}Z_1$};
+  \node[below=of S10,anchor=south] {\color{red}$A_2\color{black!60!green}Z_2$};
+  \draw[->,brown] (o) .. controls ([xshift=2cm] o) and ([xshift=-2cm] S1) .. (S1);
+  \draw[->,brown] (S1) .. controls ([xshift=2cm] S1) and ([xshift=-2cm] S3) .. (S3);
+  \draw[->,brown] (S1) .. controls ([xshift=2cm] S1) and ([xshift=-2cm] S5) .. (S5);
+  \draw[->,black!60!green] (S2) .. controls ([xshift=2cm] S2) and ([xshift=-2cm] S4) .. (S4);
+  \draw[->,black!60!green] (S2) .. controls ([xshift=2cm] S2) and ([xshift=-2cm] S6) .. (S6);
+  \draw[->,black!60!green] (o) .. controls ([xshift=2cm] o) and ([xshift=-2cm] S2) .. (S2);
+  \draw[->,brown] (S3) to (S7);
+  \draw[->,brown] (S5) to (S9);
+  \draw[->,black!60!green] (S4) to (S8);
+  \draw[->,black!60!green] (S6) to (S10);
+\end{tikzpicture}

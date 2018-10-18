@@ -1,0 +1,22 @@
+
+\begin{tikzpicture}[->,>=stealth',auto,node distance=3,
+  thick,main node/.style={circle,draw,font=\sffamily\large\bfseries}]
+    \node[main node](A1){$A_1$};
+    \node[main node,below=of A1](A2){$A_2$};
+    \node[main node,right=of A1](D1){$A_1$};
+    \node[main node,right=of A2](D2){$A_2$};
+    \node[main node,below right=15mm and 30mm of D1](X){$X$};
+    \node[above=1 of A1]{MAIN CHAIN};
+    \node[above=1 of D1]{PLASMA CHAIN};
+    \path (A1) [bend left] edge (D1)
+          (D1) [bend left] edge (A1)
+          (A2) [bend left] edge (D2)
+          (D2) [bend left] edge (A2)
+    ;
+    \path[<->]
+          (D1) [ultra thick] edge (X) 
+          (D2) [ultra thick] edge (X)
+    ;
+    \draw[-,dashed] (2,2) -- (2,-6);
+
+\end{tikzpicture}

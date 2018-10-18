@@ -1,0 +1,266 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% TikZ-FeynHand, Version 1.0.0 of 2018/01/31
+% Feynhand Diagrams with TikZ (LaTex manual version)
+% Copyright (C) 2018 Max Dohse
+% Copyright (C) 2016 Joshua Ellis
+%
+% This LaTeX file and the whole package are free: 
+% you can redistribute it and/or modify it under the
+% terms of the GNU General Public License as published by the Free Software Foundation, 
+% either version 3 of the License, or (at your option) any later version.
+%
+% This file is a modification of the file tikzlibraryfeynman.code.tex
+% of the package tikz-feynman (version 1.1.0 of 2016/02/05)
+% which is available online at https://ctan.org/pkg/tikz-feynman
+% for a list of changes, see the file CHANGES.TXT
+%
+% available at https://ctan.org/pkg/tikz-feynhand
+% The Current Maintainer of this work is Max Dohse.
+%
+% This program is distributed in the hope that it will be useful, but WITHOUT
+% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+% FOR A PARTICULAR PURPOSE. 
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Pre-requisites
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usetikzlibrary{
+  arrows.meta,
+  calc,
+  decorations,
+  decorations.markings,
+  decorations.pathmorphing,
+  decorations.pathreplacing,
+  external,
+  patterns,
+  positioning,
+  shapes.geometric,
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Function definitions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Miscellaneous functions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\tikzfeynhand@empty{}
+
+%% Key Manager
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Setup the tikz-feynhand key family
+\pgfkeys{
+  /tikzfeynhand/.is family,
+  /tikzfeynhand/.search also={/tikz},
+}
+
+%% |\tikzfeynhandset| allows keys that belong with tikz-feynhand to be easily set.
+\def\tikzfeynhandset{\pgfqkeys{/tikzfeynhand}}
+
+%% Version check
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Check which version is expected and which is installed
+\def\tikzfeynhand@compat@parse#1.#2.#3\pgfeov{
+  \edef\tikzfeynhand@compat@major{#1}
+  \edef\tikzfeynhand@compat@minor{#2}
+  \edef\tikzfeynhand@compat@patch{#3}
+  \edef\tikzfeynhand@compat{#1.#2.#3}
+}
+\let\tikzfeynhand@compat=\tikzfeynhand@empty
+\pgfkeyslet{/tikzfeynhand/compat/.@cmd}{\tikzfeynhand@compat@parse}
+\ProcessPgfPackageOptions{/tikzfeynhand}
+
+\AtBeginDocument{
+  \ifx\tikzfeynhand@version\tikzfeynhand@compat\else
+    \ifx\tikzfeynhand@compat\tikzfeynhand@empty
+      \PackageWarning{tikz-feynhand}{Consider loading TikZ-Feynhand with \string\usepackage[compat=\tikzfeynhand@version]{tikz-feynhand} so that you can be warned if TikZ-Feynhand changes.}
+    \else
+      \ifx\tikzfeynhand@compat@major\tikzfeynhand@version@major
+        \ifx\tikzfeynhand@compat@minor\tikzfeynhand@version@minor
+          \ifx\tikzfeynhand@compat@patch\tikzfeynhand@version@patch\else
+            \PackageInfo{tikz-feynhand}{The preamble requested version \tikzfeynhand@compat, but the system version is \tikzfeynhand@version.  This should cause no issue.}
+          \fi
+        \else
+          \PackageWarning{tikz-feynhand}{The preamble requested version \tikzfeynhand@compat, but the system version is \tikzfeynhand@version.  This may change some diagrams.}
+        \fi
+      \else
+        \PackageError{tikz-feynhand}{The preamble requested version \tikzfeynhand@compat, but the system version is \tikzfeynhand@version.  They are most likely incompatible.  Please download the appropriate version from jpellis.me/projects/tikz-feynhand.}
+      \fi
+    \fi
+  \fi
+}
+
+%% Feynhand Environment
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Provide `\begin{feynhand} ... \end{feynhand}` within TikZ pictures.
+\tikzaddtikzonlycommandshortcutlet\feynhand\tikzfeynhand@environment@feynhand
+\tikzaddtikzonlycommandshortcutlet\endfeynhand\endtikzfeynhand@environment@feynhand
+
+%% \begin{feynhand}...\end{feynhand}
+\def\tikzfeynhand@environment@feynhand{%
+  \pgfutil@ifnextchar[{\tikzfeynhand@environment@feynhand@opt}
+  {\tikzfeynhand@environment@feynhand@opt[]}}
+
+\def\tikzfeynhand@environment@feynhand@opt[#1]{%
+  \begingroup
+  %% Local overrides
+  \let\tikz@@scan@fig=\tikzfeynhand@scan@fig
+  %% Local commands
+  \let\vertex=\tikzfeynhand@commands@vertex
+  \let\propagator=\tikzfeynhand@commands@propagator
+  \let\propag=\propagator
+  %% Opening hooks
+  \scope
+  \tikzfeynhand@tikz@search@tikzfeynhand
+  \pgfkeys{/tikzfeynhand/every feynhand@@,#1}
+  \pgfkeysvalueof{/tikzfeynhand/execute at begin feynhand@@}%
+  \pgfkeysvalueof{/tikzfeynhand/execute at begin feynhand}%
+  }
+
+\def\endtikzfeynhand@environment@feynhand{%	
+  %% Closing hooks
+  \pgfkeysvalueof{/tikzfeynhand/execute at end feynhand}%
+  \pgfkeysvalueof{/tikzfeynhand/execute at end feynhand@@}%
+  \endscope
+  \endgroup
+  }
+
+%%% Allow empty nodes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newif\iftikzfeynhandallowemptynode
+\newif\iftikzfeynhandvertex
+\def\tikzfeynhand@scan@fig{%
+  \pgfutil@ifnextchar a{\tikz@fig@scan@at}
+    {\pgfutil@ifnextchar({\tikz@fig@scan@name}
+      {\pgfutil@ifnextchar[{\tikz@fig@scan@options}%
+        {\pgfutil@ifnextchar\bgroup{\tikz@fig@main}%
+          {\iftikzfeynhandvertex%
+             \tikzset{/tikzfeynhand/every vertex@@}%
+             \iftikzfeynhandallowemptynode%
+               \else%
+               \tikzset{/tikzfeynhand/particle}%
+               \fi%
+            \fi%
+            \tikz@fig@main{}
+          }
+        }
+      }
+    }
+}
+
+%% Include /tikzfeynhand in the search path
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\tikzfeynhand@tikz@search@tikzfeynhand{%
+  \pgfkeys{/tikz/.unknown/.code=%
+    \let\tikz@key\pgfkeyscurrentname%
+    %% Is it a tikzfeynhand key?
+    \pgfkeys{/tikzfeynhand/\tikz@key/.try={##1}}%
+    \ifpgfkeyssuccess%
+    \else%
+      %% Is it a pgf key?
+      \pgfkeys{/pgf/\tikz@key/.try={##1}}%
+      \ifpgfkeyssuccess%
+      \else%
+        \expandafter\pgfutil@in@\expandafter!\expandafter{\tikz@key}%
+        \ifpgfutil@in@%
+          %% this is a color!
+          \expandafter\tikz@addoption\expandafter{\expandafter\tikz@compat@color@set\expandafter{\tikz@key}}%
+          \edef\tikz@textcolor{\tikz@key}%
+        \else%
+          \pgfutil@doifcolorelse{\tikz@key}
+          {%
+            \expandafter\tikz@addoption\expandafter{\expandafter\tikz@compat@color@set\expandafter{\tikz@key}}%
+            \edef\tikz@textcolor{\tikz@key}%
+          }%
+          {%
+            %% Ok, second chance: This might be an arrow specification:
+            \expandafter\pgfutil@in@\expandafter-\expandafter{\tikz@key}%
+            \ifpgfutil@in@%
+              %% Ah, an arrow spec!
+              \expandafter\tikz@processarrows\expandafter{\tikz@key}%
+            \else%
+              %% Ok, third chance: A shape!
+              \expandafter\ifx\csname pgf@sh@s@\tikz@key\endcsname\relax%
+                \pgfkeys{/errors/unknown key/.expand
+                once=\expandafter{\expandafter/\expandafter t\expandafter
+                i\expandafter k\expandafter z\expandafter/\tikz@key}{##1}}%
+              \else%
+                \edef\tikz@shape{\tikz@key}%
+              \fi%
+            \fi%
+          }%
+        \fi%
+      \fi%
+    \fi%
+  }
+}
+
+
+%% Vertex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% SEE ALSO \vertex above!
+%% Adapted from |\coordinate| code
+\def\tikzfeynhand@commands@vertex{%
+  \path \pgfextra{\tikzfeynhandallowemptynodetrue}
+        \pgfextra{\tikzfeynhandvertextrue}
+        node}
+
+%% Propagators
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\tikzfeynhand@commands@propagator}[1][]{\draw [#1]}
+
+%% Optional argument in style key
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\tikzfeynhand@key@opt#1[#2]#3\pgfeov{%
+  \tikzfeynhandset{#1={[#2]#3}}}
+
+%% Insertion
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\tikzfeynhand@insertion{%
+  \pgfutil@ifnextchar[{\tikzfeynhand@key@opt{insertion@@}}
+  {\tikzfeynhand@key@opt{insertion@@}[]}}
+\pgfkeyslet{/tikzfeynhand/insertion/.@cmd}{\tikzfeynhand@insertion}
+
+%% Momentum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\tikzfeynhand@momentum@std{%
+  \pgfutil@ifnextchar[{\tikzfeynhand@key@opt{momentum@@}}
+  {\tikzfeynhand@key@opt{momentum@@}[]}}
+\pgfkeyslet{/tikzfeynhand/momentum/.@cmd}{\tikzfeynhand@momentum@std}
+
+\def\tikzfeynhand@momentum@stdp{%
+  \pgfutil@ifnextchar[{\tikzfeynhand@key@opt{momentum'@@}}
+  {\tikzfeynhand@key@opt{momentum'@@}[]}}
+\pgfkeyslet{/tikzfeynhand/momentum'/.@cmd}{\tikzfeynhand@momentum@stdp}
+
+\def\tikzfeynhand@momentum@stdr{%
+  \pgfutil@ifnextchar[{\tikzfeynhand@key@opt{reversed momentum@@}}
+  {\tikzfeynhand@key@opt{reversed momentum@@}[]}}
+\pgfkeyslet{/tikzfeynhand/reversed momentum/.@cmd}{\tikzfeynhand@momentum@stdr}
+
+\def\tikzfeynhand@momentum@stdrp{%
+  \pgfutil@ifnextchar[{\tikzfeynhand@key@opt{reversed momentum'@@}}
+  {\tikzfeynhand@key@opt{reversed momentum'@@}[]}}
+\pgfkeyslet{/tikzfeynhand/reversed momentum'/.@cmd}{\tikzfeynhand@momentum@stdrp}
+
+% short versions of momentum styles
+\pgfkeyslet{/tikzfeynhand/rmomentum/.@cmd}{\tikzfeynhand@momentum@stdr}
+\pgfkeyslet{/tikzfeynhand/rmomentum'/.@cmd}{\tikzfeynhand@momentum@stdrp}
+
+\pgfkeyslet{/tikzfeynhand/mom/.@cmd}{\tikzfeynhand@momentum@std}
+\pgfkeyslet{/tikzfeynhand/mom'/.@cmd}{\tikzfeynhand@momentum@stdp}
+
+\pgfkeyslet{/tikzfeynhand/revmom/.@cmd}{\tikzfeynhand@momentum@stdr}
+\pgfkeyslet{/tikzfeynhand/revmom'/.@cmd}{\tikzfeynhand@momentum@stdrp}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Styles
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input tikzfeynhand.keys.code.tex
+
+\endinput
