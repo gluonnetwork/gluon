@@ -93,6 +93,7 @@ bharath\svgat leverj\svgperiod io \\
 
         We introduce a plasma sidechain designed specifically for non-custodial, high-speed, low-latency trading. We explore extending the value proposition of plasma to a financial institution using comprehensive set of fraud-proofs to enforce correctness and voting to handle data unavailability. We describe a hybrid DEX that enables us to trade at high-speed, at low gas cost, and with support for fast withdrawals without handing over funds custody to the sidechain operator. 
 \end{abstract}
+
 \section{Introduction}
 
 The largest use case of cryptocurrencies is trading, which is currently dominated by centralized exchanges. Users who trade on centralized exchanges tolerate custodial risk for the benefits of low-latency and high-speed trading. We aim to break this dichotomy and present a protocol that enables low-latency, high-speed trading without custodial risks. 
@@ -618,8 +619,6 @@ The operator determines the cause of the halt and takes any necessary corrective
 
 We present a comprehensive suite of fraud proofs that address every possible state change. Fraud proofs are stated as assertions that need to be always true. Any failed assertion should halt the plasma sidechain. 
 
-Voting to halt works as a catch-all fraud in case a new fraud that can be detected by not proven is found after the contract is live.
-
 All fraud-proofs that require any operator signed ledger entry $e$ require verification of the operator signature to ensure authenticity.
 
 \begin{equation}
@@ -629,7 +628,8 @@ All fraud-proofs that require any operator signed ledger entry $e$ require verif
 \subsection{Gluon Protocol Frauds}
 
 \subsubsection{Block Commitment Frauds.}\label{fp:bcf}
-Data unavailability is detected as a mismatch between the observed ledger entries and their commitment. Every validator should compute commitment roots as they are published and if the commitment does not match the computed root, proceed to \emph{Vote to Halt}.
+Data unavailability is detected as a mismatch between the observed ledger entries and their commitment. Validators compute commitment roots as they are published and if their commitment does not match the expected value, proceed to \emph{Vote to Halt}. This also works as a catch-all fraud proof in case a new fraud that can be detected but not proven is found after the plasma contract is live.
+
 
 \textbf{Deposit Commitment Mismatch.} Operator commits deposit in $depositRoot$ but does not create a corresponding \emph{Deposit} ledger entry.
 
@@ -775,7 +775,7 @@ Most recent entry $e$ and prior entry $p$ for account $A$. Balances should add u
 \begin{equation}p.account = e.account\end{equation}
 \begin{equation}e.previous = p\end{equation}
 \begin{equation}
-entry.buyorder.asset = entry.sellorder.asset = entry.fill.asset
+e.buyorder.asset = e.sellorder.asset = e.fill.asset
 \end{equation}
 \subsubsection{Replay/Overfill Fraud} \label{fp:rof}
 The operator may match the same order multiple times or match it to higher than specified quantity.
@@ -990,12 +990,12 @@ State $s_2$ represents funds on the actual plasma chain in unconfirmed blocks or
 
 
 \newpage
-\section{Gluon Plasma Proof of Safety}
+\section{Proof of Safety}
 
 The plasma system is safe only if every state change is safe. Enforcing the trustless constraints at every step of the protocol, every ledger entry and all ledger entry ordering creates a secure system. The tables below show all possible state changes and their enforcing fraud-proof or protocol step.
 
 \begin{table}[ht]
-\caption{\textbf{Gluon Plasma Protocol.} Every protocol step enforces all constraints.}
+\caption{\textbf{Plasma Protocol.} Every protocol step enforces all constraints.}
 \centering
 \begin{tabular}{|c|>{\columncolor{green!50}}c|>{\columncolor{violet!20}}c|>{\columncolor{yellow!50}}c|>{\columncolor{blue!20}}c|}
 \hline
