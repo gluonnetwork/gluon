@@ -1,0 +1,24 @@
+
+\begin{align*}
+\setlength{\feynhanddotsize}{2mm}
+\setlength{\feynhandblobsize}{10mm}
+\setlength{\feynhandlinesize}{1pt}
+\setlength{\feynhandarrowsize}{9pt}
+\setlength{\feynhandtopsep}{3mm}
+%\begin{tikzpicture}[baseline=(o.base)]
+\begin{tikzpicture}[baseline={([yshift=-5cm]current page.center)}]
+\begin{feynhand}
+\vertex (a) at (0.25,-2); 
+\vertex (b) at (-2,0); 
+\vertex (c) at (1.75,4);
+\vertex (d) at (4,2) {};
+\vertex [dot] (o) at (0,0) {}; 
+\vertex [dot] (p) at (2,2) {}; 
+\propag [fermion] (o) to (a);
+\propag [fermion] (b) to (o); 
+\propag [glu] (o) to (p);
+\propag [fermion] (c) to (p);
+\propag [fermion] (p) to (d);
+\end{feynhand}
+\end{tikzpicture}
+\end{align*}

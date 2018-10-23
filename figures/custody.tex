@@ -1,0 +1,74 @@
+
+\subfloat[][Banking]{
+\begin{tikzpicture}[->,>=stealth',auto,node distance=2,
+  thick,main node/.style={circle,draw,font=\sffamily\large\bfseries}]
+    \node[main node](A1){$S$};
+    \node[main node,below=of A1](C1){$B_1$};
+    \node[main node,right=of A1](A2){$R$};
+    \node[main node,below=of A2](C2){$B_2$};
+    \path[dashed] (A1) edge node {10} (C1)
+                  (C2) edge node {10} (A2)
+    ;
+    \path 
+          (C1)  edge node {10} (C2)
+    ;
+\end{tikzpicture}
+}
+\qquad
+\qquad
+\subfloat[][Credit Cards] {
+\begin{tikzpicture}[->,>=stealth',auto,node distance=2,
+  thick,main node/.style={circle,draw,font=\sffamily\large\bfseries}]
+    \node[main node](A1){$S$};
+    \node[main node,below right=of A1](C){$C$};
+    \node[main node,above right=of C](A2){$R$};
+    \node[main node,right=of C](Q){$?$};
+    \path[dashed,bend left] (A2) edge node {pay} (C);
+    \path[dashed] (Q) edge node {} (C);
+    \path[dashed]           (C) edge node {notify} (A1);
+    \path[bend left] (C) edge node {send} (A2);
+\end{tikzpicture}
+}
+
+\subfloat[][Postal]{
+\begin{tikzpicture}[->,>=stealth',auto,node distance=2,
+  thick,main node/.style={circle,draw,font=\sffamily\large\bfseries}]
+    \node[main node](A1){$S$};
+    \node[main node,below right=of A1](C){$P$};
+    \node[main node,above right=of C](A2){$R$};
+    \node[main node,right=1.5 of C](Q){$?$};
+    \path (A1) edge node {10} (C);
+    \path (C)[thin]  edge node {8} (A2)
+    ;
+    
+    \path[dashed] (C) edge node {2} (Q)
+    ;
+\end{tikzpicture}
+}
+\qquad
+\qquad
+\subfloat[][Hawala]{
+
+\begin{tikzpicture}[->,>=stealth',auto,node distance=2,
+  thick,main node/.style={circle,draw,font=\sffamily\large\bfseries}]
+    \node[main node](A1){$S$};
+    \node[main node,below right=of A1] (H) {$H$};
+    \node[main node,above right=of H](A2){$R$};
+    \path[dashed] (A1) edge node {10?} (H)
+          (H)  edge node {?} (A2)
+    ;
+    
+\end{tikzpicture}
+}
+
+\subfloat[][Crypto]{
+
+\begin{tikzpicture}[->,>=stealth',auto,node distance=3,
+  thick,main node/.style={circle,draw,font=\sffamily\large\bfseries}]
+    \node[main node](A1){$S$};
+    \node[main node,right=of A1](A2){$R$};
+    \path[ultra thick] (A1) edge node {10} (A2)
+    ;
+\end{tikzpicture}
+}
+

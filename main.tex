@@ -5,6 +5,8 @@
 \usepackage[autolanguage]{numprint}       % print numbers with commas etc
 
 % math, symbols, fonts
+\usepackage{subfig}
+\usepackage{amsthm}
 \usepackage{amsmath}        
 \usepackage{mathrsfs}       
 \usepackage{amssymb}        
@@ -12,10 +14,11 @@
 
 \usepackage{geometry}       % layout tables and figures automagically
 \usepackage[table]{xcolor}
+\usepackage{colortbl}
 \usepackage{pgf}
 \usepackage{tikz}
 \usepackage{mdframed}
-\usetikzlibrary{arrows,automata,positioning}
+\usetikzlibrary{arrows,automata,positioning,calc}
 \usepackage[compat=1.1.0]{tikz-feynhand}
 
 \usepackage[font={small,it}]{caption}
@@ -56,9 +59,9 @@
 \large A Plasma Variant for Non-custodial Exchanges}
 
 \author{Bharath Rao \\ 
-bharath@leverj.io \\
 Leverj\\
-WORKING DRAFT}
+bharath@leverj.io \\
+\tiny WORKING DRAFT}
 
 \usepackage{todonotes}
 \newcommand{\question}[2]{\todo[inline,author=#1]{#2}}
@@ -89,9 +92,9 @@ The appeal of cryptocurrency is its ability to self-regulate and confirm with it
 
 What exactly makes something trustless? A system is trustless if all assets are always in the custody of their owners, transfers do not need a trusted intermediary and the integrity of all asset transfers can be verified by network participants with certainty.
 
-The above definition translates to the following four constraints\footnote{Pieter Wuille describes these constraints informally on reddit: \url{http://archive.is/zZMf7}}:
+The above definition translates to the following four constraints\footnote{Appendix \ref{app:safety} explores these in detail.}:
 \begin{enumerate}
-    \item \emph{Segregation:} Coins are created directly into the owner’s custody and can only be destroyed by the owner. 
+    \item \emph{Segregation:} Coins are created or sent directly into the owner’s custody. 
     \item \emph{Agency:} Coin ownership can only change with the provable intention of the owner.
     \item \emph{Solvency:} Only legitimately created and previously unspent coins can be spent.
     \item \emph{Integrity:} Coin movement should comply with all network consensus rules\footnote{Consensus rules modeled as constraints:                             \url{https://en.bitcoin.it/wiki/Protocol_rules}}.
@@ -182,7 +185,7 @@ The original idea of plasma (Plasma Classic) has blossomed into multiple flavors
     \item Block headers contain sufficient information to prove correctness of state transitions
     \item Incorrect state transitions in $P$ are rolled back (up to a point) using fraud-proofs on $R$
     \item Exits are prioritized by earlier $P$ blocks, to ensure fraudulent outputs fail
-    \item 	If information needed for fraud-proofs is withheld, mass exit from $P$ to $R$
+    \item If information needed for fraud-proofs is withheld, mass exit from $P$ to $R$
 \end{enumerate}
 
 \subsection{Plasma Exchange}
@@ -330,9 +333,9 @@ State transitions are organized into blocks that are committed to the plasma con
 \bfseries Field Name &\bfseries  Description \\
 \hline
 $gBlockNumber$ & G-Block number, increasing positive integer \\ 
-$ledgerRoot$ & Merkle root of all ledger entries in this G-block \\ 
-$balanceRoot$ & Merkle root of current balances snapshot as of this G-block\\ 
 $depositRoot$ & Ordered Merkle root of all valid deposits in this G-block \\ 
+$withdrawRoot$ & Merkle root of all withdraw entries in this G-block \\ 
+$balanceRoot$ & Merkle root of current balances snapshot as of this G-block\\ 
 
 \hline
 \end{tabular}
@@ -448,7 +451,7 @@ All protocol steps have state transitions that the operator needs to incorporate
 
 Users are normally only concerned with \emph{Deposit} and \emph{Withdrawal} steps. They will \emph{Reclaim Deposit} and \emph{Exit Asset Balance} on halted chains.
 
-\subsection{Deposit}
+\subsection{Deposit}\label{gp:deposit}
 \begin{mdframed}
 \begin{enumerate}
     \item Account $A$ transfers quantity $N$ of asset $Z$ to plasma contract $C$. 
@@ -463,7 +466,7 @@ Users are normally only concerned with \emph{Deposit} and \emph{Withdrawal} step
 \textbf{Remarks.} 
 The operator creates \emph{Deposit} ledger entries for every deposit that it deems valid, signs them and publishes them on the plasma sidechain. These entries are committed to the main chain as $depositRoot$.
 
-\subsection{Reclaim Deposit}
+\subsection{Reclaim Deposit}\label{gp:reclaim}
 Account $A$ can reclaim an operator uncommitted deposit once $G$ is confirmed.
 \begin{mdframed}
 \begin{enumerate}
@@ -480,12 +483,12 @@ Ignoring unsupported tokens also eliminates some spam attacks. In addition, the 
 
 The ability to reclaim an unacknowledged deposit directly from the smart contract without requiring the co-operation of the operator is an essential requirement for non-custodial operation.
 
-\subsection{Withdrawal}
+\subsection{Withdrawal}\label{gp:withdrawal}
 \begin{mdframed}
 \begin{enumerate}
     \item Account $A$ submits a signed withdrawal request for quantity $N$ of asset $Z$ to operator $X$ off-chain. 
     \item Operator $X$ creates a \emph{Withdraw} ledger entry $W$ that reflects the new reduced balance of \((A, Z)\) and publishes it. $A$ can withdraw once $W$ is in a confirmed G-block.
-    \item $A$ submits $W$ with inclusion proof \((W \in ledgerRoot)\) to plasma contract $C$. 
+    \item $A$ submits $W$ with inclusion proof \((W \in withdrawRoot)\) to plasma contract $C$. 
     \item $C$ verifies $W$ is valid and has not been already processed. $C$ stores hash of $W$ to prevent duplicate withdrawals and sends $N$ quantity of $Z$ to $A$ on main chain.
     \item If $W$ is not published within a reasonable time (griefing attack by $X$), $A$ should cancel all open orders for $Z$ and proceed to \emph{Exit Asset Balance}.
 \end{enumerate}
@@ -495,7 +498,7 @@ The ability to reclaim an unacknowledged deposit directly from the smart contrac
 \textbf{Remarks.}
 In normal operation, the user can withdraw very fast with the co-operation of the operator. From the user’s perspective, a withdraw request is submitted and approved after a short period of time following which, the user can withdraw the funds. 
 
-\subsection{Exit Asset Balance}
+\subsection{Exit Asset Balance}\label{gp:exit}
 \begin{mdframed}
 \begin{enumerate}
     \item Account $A$ submits ledger entry $E$ for Asset $Z$ with inclusion proof (\(E \in balanceRoot\)) of the last confirmed G-block to plasma contract $C$. 
@@ -509,7 +512,7 @@ In normal operation, the user can withdraw very fast with the co-operation of th
 
 \textbf{Remarks.}  Exiting an account’s asset balance is a permanent cessation of activity for the account/asset pair. Normally, this is only needed when the operator refuses to honor a fast withdrawal.  Assets may be transferred on a halted chain using only the final step.
 
-\subsection{Gluon Block Submission}
+\subsection{Gluon Block Submission}\label{gp:block}
 \begin{mdframed}
 \begin{enumerate}
     \item Operator $X$ sends new G-Block $G_{i+1}$ to plasma contract $C$.
@@ -527,7 +530,7 @@ In normal operation, the user can withdraw very fast with the co-operation of th
 
 \textbf{Remarks.} The operator must include all ledger entries since the last G-block without any omissions or reordering. The plasma contract enforces a minimum  of $submissionInterval$ main chain blocks between two G-blocks. 
 
-\subsection{Vote to Halt}
+\subsection{Vote to Halt}\label{gp:vote2halt}
 \begin{mdframed}
 \begin{enumerate}
     \item Account $A$ votes to halt chain by invoking \(halt()\) on staking contract $S$.
@@ -560,7 +563,7 @@ A speedy halt enables orderly exit and appropriate action to be taken, including
 
 All voting schemes are tradeoffs and will never be perfect. Moving beyond voting into provable correctness that can be verified by the plasma contract itself is a research subject we are actively pursuing.
 
-\subsection{Halt Abandoned Chain}
+\subsection{Halt Abandoned Chain}\label{gp:abandon}
 \begin{mdframed}
 \begin{enumerate}
     \item Account $A$ calls $abandon$ on  plasma contract $C$
@@ -595,7 +598,8 @@ The operator halts all activity and submits a G-Block containing the final trans
 The operator determines the cause of the halt and takes any necessary corrective action and starts a new sidechain. The old chain is abandoned and users move their funds to the new chain. 
 
 \section{Gluon Plasma Fraud Proofs}
-We present a comprehensive suite of fraud proofs that can be used to halt the plasma sidechain in case the operator is compromised. Fraud proofs are stated as assertions that need to be always true. Any failed assertion should halt the plasma sidechain. 
+
+We present a comprehensive suite of fraud proofs that address every possible state change. Fraud proofs are stated as assertions that need to be always true. Any failed assertion should halt the plasma sidechain. 
 
 Voting to halt works as a catch-all fraud in case a new fraud that can be detected by not proven is found after the contract is live.
 
@@ -605,9 +609,39 @@ All fraud-proofs that require any operator signed ledger entry $e$ require verif
     ecrecover(e) = operator
 \end{equation}
 
-\subsection{Segregation Frauds}
+\subsection{Gluon Protocol Frauds}
 
-\subsubsection{Invalid Deposit Fraud}
+\subsubsection{Block Commitment Frauds.}\label{fp:bcf}
+Data unavailability is detected as a mismatch between the observed ledger entries and their commitment. Every validator should compute commitment roots as they are published and if the commitment does not match the computed root, proceed to \emph{Vote to Halt}.
+
+\textbf{Deposit Commitment Mismatch.} Operator commits deposit in $depositRoot$ but does not create a corresponding \emph{Deposit} ledger entry.
+
+\textbf{Detection.} 
+Committed $depositRoot$ does not match deposit commitment $M_D$ computed by plasma participants using published Gluon plasma \emph{Deposit} ledger entries for a given G-block, resulting in \emph{Vote to Halt}.
+
+\begin{equation}
+M_D = G.depositRoot
+\end{equation}
+
+\textbf{Withdraw Commitment Mismatch.} 
+Operator commits a withdrawal in $withdrawRoot$ but does not create a corresponding \emph{Withdraw} ledger entry.
+
+\textbf{Detection.} 
+Committed $withdrawRoot$ does not match withdraw commitment $M_W$ computed by plasma participants using published Gluon plasma \emph{Withdraw} ledger entries for a given G-block, resulting in \emph{Vote to Halt}.
+
+\begin{equation}
+M_W = G.withdrawRoot
+\end{equation}
+
+\textbf{Balances Commitment Mismatch.} Operator creates a fake ledger entry in order to steal funds and commits in $balanceRoot$ but does not publish it to avoid detection.
+
+\textbf{Detection.} Committed $balanceRoot$ does not match commitment $M_B$ computed for current snapshot as of a given G-block by plasma participants using all published Gluon plasma ledger entries, resulting in \emph{Vote to Halt}.
+
+\begin{equation}
+M_B = G.balanceRoot
+\end{equation}
+
+\subsubsection{Invalid Deposit Fraud}\label{fp:idf}
 Operator creates a deposit entry with a fake, incorrect or already reclaimed deposit hash $H$ (i.e., credits an incorrect amount or asset) 
 
 \textbf{Proof.} 
@@ -618,31 +652,26 @@ Operator signed \emph{Deposit} ledger entry $e$. The plasma contract $C$ cross-c
     C.deposits[H] = true
     \end{equation}
 
-\subsubsection{Deposit Reversal Fraud} 
+
+\subsubsection{Deposit Reversal Fraud}\label{fp:drf}
 Operator does not include the deposit ledger entry $e$ in $depositRoot$ enabling user to reclaim the deposit and trade without funds. 
 
-\textbf{Proof.} Signed Deposit Entry $e$ and exclusion proof of $H$ in $depositRoot$ of G-block $G$.
-\begin{equation}
-H \notin G.depositRoot
-\end{equation}
-
-\subsubsection{Missing Deposit} 
-Operator commits deposit in $depositRoot$ but does not create a corresponding \emph{Deposit} ledger entry.
-
-\textbf{Proof.} 
-Committed $depositRoot$ does not match deposit commitment value $M$ computed by plasma participants using published Gluon plasma \emph{Deposit} ledger entries, resulting in \emph{Vote to Halt}.
+\textbf{Proof.} The deposit ledger entry $e$. Proof of exclusion of the deposit hash H of $e$ can be used as proof. As a practical matter, since the committed $depositRoot$ won't match the validator computed value, this will result in a \emph{Vote to Halt}.
 
 \begin{equation}
-M = G.depositRoot
+    e.H \in G.depositRoot
 \end{equation}
 
-\subsubsection{Withdrawal Fraud} Operator creates an unauthorized or fake \emph{Withdraw} entry. The operator cannot steal these funds but can grief a user and prevent them from trading. 
+\subsubsection{Fake Withdraw Entry} \label{fp:fwe}
+Operator creates an unauthorized or fake \emph{Withdraw} entry. The operator cannot steal these funds but can grief a user and prevent them from trading. 
 
 \textbf{Proof.} Operator signed fake \emph{Withdraw} entry $e$. The plasma contract checks that the user signature does not match contents and chain is halted.
 \begin{equation}
 ecrecover(e.accountsignature) = account
 \end{equation}
-\subsubsection{Exit Insolvency Fraud}
+
+
+\subsubsection{Exit Insolvency Fraud}\label{fp:eif}
 Exchange does not cancel \emph{Exited} orders, enabling trading without funds.
 
 \textbf{Proof.} Insolvent ledger entry $e$ and Merkle proof in a post exit G-block. Existence of any ledger entry $e$ after \emph{Exited} balance is evidence of a compromised operator. To prevent loss, this proof must be submitted when the entry is still in an unconfirmed G-block $G_{i+1}$.
@@ -650,7 +679,7 @@ Exchange does not cancel \emph{Exited} orders, enabling trading without funds.
 \exists ExitBlock(A,Z) = G_x \wedge e \in G_{i}.balanceRoot \implies i < x
 \end{equation}
 
-\subsubsection{Fake Exit Fraud}
+\subsubsection{Fake Exit Fraud}\label{fp:fef}
 Operator creates a fake \emph{Exited} entry to grief the user.
 
 \textbf{Proof.} Operator signed Exited entry $e$. An exit (A,Z) is saved in the plasma contract and can be easily checked.
@@ -658,62 +687,17 @@ Operator creates a fake \emph{Exited} entry to grief the user.
     e.type=Exited \implies \exists ExitBlock(A,Z)
 \end{equation}
 
-\subsection{Agency Fraud}
-\subsubsection{Fake Order Fraud} One of the skimming attacks a maleficent operator can do is to fake orders of victim accounts for the purposes of market manipulation such as pumping an assets price.
+\subsection{Ledger Entry Frauds}
+\subsubsection{Fake Signature Fraud} \label{fp:fsf}
+A maleficent operator can perform a skimming attack by creating fake orders of victim accounts. The operator may sign an account order with a fake API key\cite{levzkapi}. These orders may be used to pump prices or other forms of market manipulation.
 
 \textbf{Proof} 
-The order in the ledger $entry$ would not have a valid signature of the account. To ensure that ledger entries are not created by a validator to fraudulently halt the chain, we have to also ensure that the ledger entry has been signed by the Operator.
+Any ledger entry $e$. An API key $originator$ for any account is verifiable by the plasma contract from API Key registry $R$. The fake order in the ledger entry would not have a valid signature of the account. To ensure that ledger entries are not created by a validator to fraudulently halt the chain, we have to also ensure that the ledger entry has been signed by the Operator.
 
-\begin{equation}ecrecover(entry.order1) = account1\end{equation}
+\begin{equation}ecrecover(e.buyorder) = e.buyorder.account\end{equation}
 \begin{equation}
-ecrecover(entry.order2) = account2
+ecrecover(e.sellorder) = e.sellorder.account
 \end{equation}
-
-\subsection{Solvency Frauds}
-\subsubsection{Broken Chain Fraud}
-This is a data unavailability attack where the operator creates an entry with a non-existent prior entry.
-
-\textbf{Proof.} There is no fraud-proof for this attack and would be handled by \emph{Vote to Halt}.
-\subsubsection{Double-Spend Fraud}
-The operator creates a ledger entry linking to a spent/obsolete ledger entry, i.e., two ledger entries have the same parent. As a practical matter, this fraud will be detected exactly as the \emph{Broken Chain Fraud} and will result in a chain halt.
-
-\textbf{Proof.} Ledger entries $e_1$ and $e_2$ with same parent $p$ (other than \emph{Origin}).
-\begin{equation}
-    e_1.parent = e_2.parent \implies parent = \emph{Origin}
-\end{equation}
-\subsubsection{Replay/Overfill Fraud} 
-The operator may match the same order multiple times or match it to higher than specified quantity.
-
-\textbf{Proof.} 
-Most recent execution entry $e$ and prior entry $p$ for order $o$. The chain of ledger entries from multiple fills would need to have incorrect fill quantities to perform this fraud. We can ensure the numbers add up and no orders have been replayed or overfilled.
-\begin{equation}p.o.filled + e.fill.quantity = e.o.filled\end{equation}
-\begin{equation}
-    e.o.filled \leq e.o.quantity
-\end{equation}
-\subsubsection{Counterfeit Fraud 1} 
-When the ledger entries for a match are created, the operator may inflate the balance of one of the accounts in a counterfeiting effort. Conversely, values may be fraudulently decreased for victims.
-
-\textbf{Proof.} 
-Most recent entry $e$ and prior entry $p$ for account $A$. Balances should add up to quantities transacted.
-\begin{equation}e.balance \geq 0\end{equation}
-\begin{equation}
-  e.balance = p.balance \pm e.quantity  
-\end{equation}
-\subsubsection{Counterfeit Fraud 2} 
-Switch asset or accounts in ledger entry chain.
-
-\textbf{Proof.} 
-Most recent entry $e$ and prior entry $p$ for account $A$. Asset and account provenance should hold.
-\begin{equation}p.asset = e.asset\end{equation}
-\begin{equation}p.account = e.account\end{equation}
-\begin{equation}e.previous = p\end{equation}
-\begin{equation}
-entry.buyorder.asset = entry.sellorder.asset = entry.fill.asset
-\end{equation}
-\subsection{Ledger Entry Integrity Frauds}
-\subsubsection{Unauthorized API Key Fraud} The operator may sign an account order with a fake API key\cite{levzkapi}. These orders may be used to pump prices or other forms of market manipulation.
-
-\textbf{Proof} Any ledger entry $e$. An API key $originator$ for any account is verifiable by the plasma contract from API Key registry $R$.
 \begin{equation}
     R.translate(e.buyorder.originator) = e.buyorder.account
 \end{equation}
@@ -721,24 +705,23 @@ entry.buyorder.asset = entry.sellorder.asset = entry.fill.asset
     R.translate(e.sellorder.originator) = e.sellorder.account    
 \end{equation}
  
-\subsubsection{Excess FEE Fraud} 
-The operator may give an excess fee to itself say, 100\% and steal everyone’s funds.
+\subsubsection{FEE Fraud} \label{fp:fee}
+The operator may give an excess fee to itself say, 100\% and steal everyone’s funds. The operator may also extract fees from an unauthorized asset or send the fee to an unauthorized recipient.
 
 \textbf{Proof.} 
 Any ledger entry $e$. The maximum fees ($MAX\_FEE$) that can be charged is enforced by the contract.
 \begin{equation}
     e.type = FEE \implies e.fill.quantity \times MAX\_FEE \leq e.quantity
 \end{equation}
-\subsubsection{Temporal Fraud} 
-For price-time priority fraud to work correctly, it is necessary to ensure that the exchange does not accept orders with a clock that is far beyond the skew tolerance that would weaken the price-time priority fraud.
+\begin{equation}
+    e.type = FEE \implies e.account = STAKING\_ADDR
+\end{equation}
+\begin{equation}
+    e.type = FEE \implies e.asset \in FEE\_TOKENS 
+\end{equation}
 
-\textbf{Proof.} 
-Any ledger entry $e$. The execution of orders should not precede the orders and the clock skew between the user’s clock and the operator’s clock must be within the system tolerance $MAX\_SKEW$.
-\begin{equation}e.buyorder.exchangeTime \leq e.fill.exchangeTime\end{equation}
-\begin{equation}e.sellorder.exchangeTime \leq e.fill.exchangeTime\end{equation}
-\begin{equation}\mid e.order.originatorTime - e.order.exchangeTime \mid < MAX\_SKEW\end{equation}
-
-\subsubsection{Price Fraud} The operator may match victim orders at unfavorable prices and give its own orders a better price, enabling skimming.
+\subsubsection{Price Fraud} \label{fp:prc}
+The operator may match victim orders at unfavorable prices and give its own orders a better price, enabling skimming.
 
 \textbf{Proof.} Any ledger entry e that matched a limit order. Executions should fill at limit price or better . 
 
@@ -750,8 +733,43 @@ Any ledger entry $e$. The execution of orders should not precede the orders and 
 \end{equation}
 
 
+\subsection{Ledger Entry Ordering Frauds}
+\subsubsection{Broken Chain Fraud}\label{fp:bc}
+This is a data unavailability attack where the operator creates an entry with a non-existent prior entry.
 
-\subsubsection{Price Time Priority Fraud}
+\textbf{Proof.} There is no fraud-proof for this attack and would be handled by \emph{Vote to Halt}.
+\subsubsection{Double-Spend Fraud}\label{fp:dsf}
+The operator creates a ledger entry linking to a spent/obsolete ledger entry, i.e., two ledger entries have the same parent. As a practical matter, this fraud will be detected exactly as the \emph{Broken Chain Fraud} and will result in a chain halt.
+
+\textbf{Proof.} Ledger entries $e_1$ and $e_2$ with same parent $p$ (other than \emph{Origin}).
+\begin{equation}
+    e_1.parent = e_2.parent \implies parent = \emph{Origin}
+\end{equation}
+\subsubsection{Counterfeit Fraud} \label{fp:cff}
+When the ledger entries for a match are created, the operator may switch asset or accounts in ledger entry chain, inflate the balance of one of the accounts in a counterfeiting effort. Conversely, values may be fraudulently decreased for victims.
+
+\textbf{Proof.} 
+Most recent entry $e$ and prior entry $p$ for account $A$. Balances should add up to quantities transacted; asset and account provenance should hold.
+\begin{equation}e.balance \geq 0\end{equation}
+\begin{equation}
+  e.balance = p.balance \pm e.quantity  
+\end{equation}
+\begin{equation}p.asset = e.asset\end{equation}
+\begin{equation}p.account = e.account\end{equation}
+\begin{equation}e.previous = p\end{equation}
+\begin{equation}
+entry.buyorder.asset = entry.sellorder.asset = entry.fill.asset
+\end{equation}
+\subsubsection{Replay/Overfill Fraud} \label{fp:rof}
+The operator may match the same order multiple times or match it to higher than specified quantity.
+
+\textbf{Proof.} 
+Most recent execution entry $e$ and prior entry $p$ for order $o$. The chain of ledger entries from multiple fills would need to have incorrect fill quantities to perform this fraud. We can ensure the numbers add up and no orders have been replayed or overfilled.
+\begin{equation}p.o.filled + e.fill.quantity = e.o.filled\end{equation}
+\begin{equation}
+    e.o.filled \leq e.o.quantity
+\end{equation}
+\subsubsection{Price Time Priority Fraud}\label{fp:ptp}
 This is a versatile fraud proof that can detect a variety of exchange frauds. In particular, it can detect front running, holding orders hostage for skimming and in general, all frauds where the exchange is required to violate the predefined Central Limit Order Book (CLOB) behavior. 
 
 The proof is based on the fact that front-running and other skimming frauds are a form of illegal arbitrage that use advance knowledge of order flow. Profitable arbitrage is only possible when the operator can exit at a profitable price differential. Anything else is economically identical to a normal legal entry.
@@ -760,29 +778,59 @@ The proof is based on the fact that front-running and other skimming frauds are 
 
 \textbf{Limit Orders.} Limit orders cannot be front-run as above since any unfilled quantity turns into a resting order. When filling deep into the orderbook, a fill-or-kill flag would ensure that the trader will not pay more than he expects.
 
-To front-run limit orders, the frontrunner would have to hold on to the victim order and wait for the price to move against the victim and then fill both the victim order and a take profit order near simultaneously. This is observed as an order that filled out of turn, i.e., an order with an earlier entry time was filled at a worse price\footnote{The symbol $\succ$ here denotes worse price, i.e., higher price for buys and lower for sells.}. 
+To front-run limit orders, the frontrunner would have to hold on to the victim order and wait for the price to move against the victim and then fill both the victim order and a take profit order near simultaneously. This is observed as an order that filled out of turn, i.e., an order with an earlier entry time was filled at a worse price. 
 
 \textbf{Proof.} Recent entry $e$ and prior entry $p$ for the same asset and market side.
 
 \begin{equation}
-e.order.price \succ p.order.price \implies e.order.created > p.filltime    
+e.order.price \succcurlyeq p.order.price\footnote{We use the symbol $\succcurlyeq$ to denote same or worse price (higher buys and lower sells.)} \implies e.order.created > p.filltime    
 \end{equation}
 
+For price-time priority fraud to work correctly, it is necessary to ensure that the exchange does not accept orders with a clock that is far beyond the skew tolerance that would weaken the price-time priority fraud.
+
+\textbf{Proof.} 
+Any ledger entry $e$. The execution of orders should not precede the orders and the clock skew between the user’s clock and the operator’s clock must be within the system tolerance $MAX\_SKEW$.
+\begin{equation}e.buyorder.exchangeTime \leq e.fill.exchangeTime\end{equation}
+\begin{equation}e.sellorder.exchangeTime \leq e.fill.exchangeTime\end{equation}
+\begin{equation}\mid e.order.originatorTime - e.order.exchangeTime \mid < MAX\_SKEW\end{equation}
+\subsubsection{Unit Fraud}\label{fp:uf}
+Every ledger entry represents an entire state change. The exception is an execution, which is represented by four \emph{Trade} entries and up to four \emph{Fee} entries. The operator may put fewer or more entries to violate solvency.
+
+\textbf{Proof.} \emph{Trade} entries for a given execution $ex$ should have exactly four entries and their quantities should add up to zero.
+\begin{equation}
+    ex.length = 4
+\end{equation}
+\begin{equation}
+ex(A_1,Z_1).Qty = -ex(A_2,Z_1).Qty
+\end{equation}
+\begin{equation}
+ex(A_2,Z_2).Qty = -ex(A_1,Z_2).Qty 
+\end{equation}
+
+Similarly, up to four \emph{Fee} entries $f_i$ may exist per execution.
+\begin{equation}
+    ex.length = 4 \lor ex.length = 2
+\end{equation}
+\begin{equation}
+f_1(A_1,Z_1).Qty = -f_2(A_2,Z_1).Qty 
+\end{equation}
+\begin{equation}
+f_3(A_1,Z_1).Qty = -f_4(A_2,Z_1).Qty 
+\end{equation}
 \subsection{Validator Considerations}
 
-\subsubsection{Storage} Most fraud proofs require only the most recent entry, which contains sufficient information to prove its validity. These can be statelessly validated. 
+\subsubsection{Storage} 
+Most fraud proofs require only the most recent entry, which contains sufficient information to prove its validity. These can be statelessly validated. 
 
-Solvency and price-time priority proofs require keeping track of the last balance of every asset for every user. When a new balance entry is observed, the new and old entries can be used to verify validity of the transaction. An invalid change results in a fraud proof submission and a valid entry results in the new entry replacing the old. The storage requirement would be: \emph{number of minimum-balance accounts $\times$ number of listed assets}.
+Solvency proofs require keeping track of the last balance of every asset for every user. When a new balance entry is observed, the new and old entries can be used to verify validity of the transaction. An invalid change results in a fraud proof submission and a valid entry results in the new entry replacing the old. The storage requirement would be: \emph{number of minimum-balance accounts $\times$ number of listed assets}.
 
-Overfill proof requires retaining ledger entries of all partially filled orders until the orders expire. This number may keep increasing while the market is in an extended trend. The maximum space required is: \emph{maximum expiry time $\times$ price range in ticks}.
+Overfill and price-time priority proofs requires retaining references to the last \emph{Trade} and \emph{Fee} ledger entries of every Asset regardless of user. The maximum space required is: \emph{2 $\times$ number of listed assets}.
 
 \subsubsection{Adverserial} Spam attacks to overwhelm validators would require an attacker to create an excessive number of accounts since listing assets is controlled by the exchange. Requiring a minimum balance to trade, minimum withdrawal sizes and a reasonable tick size should ensure that validators are not spammed by millions of dust accounts. 
 
 During extended trends, the operator may reduce the maximum expiry time to prevent large number of partially filled orders that need to be tracked.
 
 \section*{Future Work}
-Committing and verifying the full ledger is expensive. Replacing $ledgerRoot$ with $withdrawalRoot$ may greatly reduce validator resource requirements and improve  performance.
-
 Zk-snarks or zk-starks may be a succinct alternative to a large set of separate proofs. A complete chain of proof-of-correctness exist between main-chain commitments. If these can be coalesced into a single compact proof that can be committed to the main-chain and verified by the plasma contract, the data unavailability problem can be eliminated, enabling us to eliminate unconfirmed blocks and voting to halt. This is an active research subject at the time of this writing.
 
 The same plasma chain can support multiple operators who need to coordinate the plasma operations. These exchanges are incentivized by revenue sharing to share their unfilled orders with peer exchanges. Consequently, deposits and trades on the plasma chain will appear on all exchanges, mitigating the effects of downtime of a single exchange.
@@ -846,26 +894,148 @@ N. Gupta. Zero Knowledge API Keys. \\ \url{https://blog.leverj.io/zero-knowledge
 \end{thebibliography}
 \ClearShipoutPictureBG
 
-\begin{align*}
-\setlength{\feynhanddotsize}{2mm}
-\setlength{\feynhandblobsize}{10mm}
-\setlength{\feynhandlinesize}{1pt}
-\setlength{\feynhandarrowsize}{9pt}
-\setlength{\feynhandtopsep}{3mm}
-\begin{tikzpicture}[baseline=(o.base)]
-\begin{feynhand}
-\vertex (a) at (0.25,-2); 
-\vertex (b) at (-2,0); 
-\vertex (c) at (1.75,4);
-\vertex (d) at (4,2) {};
-\vertex [dot] (o) at (0,0) {}; 
-\vertex [dot] (p) at (2,2) {}; 
-\propag [fermion] (o) to (a);
-\propag [fermion] (b) to (o); 
-\propag [glu] (o) to (p);
-\propag [fermion] (c) to (p);
-\propag [fermion] (p) to (d);
-\end{feynhand}
-\end{tikzpicture}
-\end{align*}
+\appendix
+\newpage
+\section{Safety of Trustless Constraints}\label{app:safety}
+\begin{figure}[h]
+\centering
+\input{figures/custody.tex}
+\caption{Custodial characteristics of payment networks.}
+\label{fig:custody}
+\end{figure}
+
+\textbf{Banking.} Payments are settled between member banks. The recipient waits for the bank to processes the transaction, deduct fees and release a portion for withdrawal. No \emph{Segregation} implies risk of censorship and seizure.
+
+\textbf{Credit Cards.} Anyone with the card information can initiate a payment. Elaborate fraud detection schemes are needed to compensate for the lack of \emph{Agency} in the system design.
+
+\textbf{Postal System.} Some packages sent through the mail may be irreplacably lost. Even when using registered mail, there is no way to guarantee that all items sent will be received. The system lacks \emph{Solvency} and is not usable for items of high value.
+
+\textbf{Hawala.} The rest of the Hawala network cannot verify that a payment has indeed been correctly made. No \emph{Integrity} enforcement inhibits the Hawala network growth beyond trusted family and kin. 
+
+\textbf{Crypto.} Crypto networks require a signature from the sender's private key. The payment is sent directly into the recipients public key. Network participants can observe the signature and validate the exact payment amount and update their ledgers. This network enforces all four constraints.
+
+\newtheorem{theorem}{Theorem}
+\begin{theorem}
+Provably safe payments between participants in a payment network is only possible when all intermediaries are perfectly safe.
+\begin{proof}
+Let the digraph $G=(V,E)$ represent a payment network where $V$ is the set of members and $E$ is the set of interconnections. Let $\Pi_s$ represent the set of all paths beginning with $v_s$. Let $\Pi^t$ represent the set of all paths ending at $v_t$. 
+
+The set of all payment routes between $v_s$ and $v_t$ that $v_s$ can use to send a payment to $v_t$ is
+
+\begin{equation}
+  \Pi_s^t = \Pi_s \cap \Pi^t  
+\end{equation}
+
+Let $P_i$ be the probability of loss of safety during payment forwarding at each node $v_i$ of any path $\Pi_i$ in $\Pi_s^t$.
+The cumulative probability $P$ of loss of safety at least a single node along $\Pi_i$ is 
+\begin{equation}
+    P = \sum_0^n P_i 
+\end{equation}
+\begin{equation}
+    P = 0 \iff n = 0 \lor \forall i, P_i = 0
+\label{T1eq1}
+\end{equation}
+
+Loss of safety is zero if and only if there are perfect or no intermediaries.
+\end{proof}
+\end{theorem}
+\newtheorem*{remark}{Remark}
+\begin{remark}{} The outgoing edge from $v_s$ represents \emph{Agency}. The incoming path to $v_t$ represents \emph{Segregation}. Having only perfect or zero intermediaries represents \emph{Solvency}. The ability of other participants to verify the existence of the edge $(v_s,v_t)$ represents \emph{Integrity}.
+\end{remark}
+\newtheorem{corollary}{Corollary}
+\begin{corollary}
+A series of perfect intermediaries between two network participants is equivalent to having no intermediaries.
+\begin{proof}
+A perfect intermediary is transitive. 
+\begin{equation}
+    v_1 \rightarrow v_2 \rightarrow v_3 \implies v_1 \rightarrow v_3
+\end{equation}
+Perfect intermedairy nodes can be disregarded from analysis and a series of perfect intermediaries from vertex $v_s$ to $v_t$ is equivalent to a   directed edge from $v_s$ to $v_t$. 
+\end{proof}
+\end{corollary}
+\begin{remark}
+A path consisting of a single directed edge or equivalent from the sender to  receiver represents the four trustless constraints. 
+\end{remark}
+\newpage
+\section{Proof of Custody}
+\begin{figure}[ht]
+    \centering
+\input{figures/states.tex}
+    \caption{State Diagram of user funds custody}
+    \label{fig:custodystate}
+\end{figure}
+
+In Fig. \ref{fig:custodystate}, State $s_0$ represents funds on the main chain under direct control of the user's private key. States $s_1$ and $s_3$ represent funds on the plasma contract that the user can move back to $s_0$ without the need for any other parties. State $s_2$ represents uncommitted balance changes in the plasma chain. We prove continuous user custody by showing that the user can always move funds to $s_0$. 
+
+The user initiates a deposit into the plasma chain using the \emph{Deposit} step of the protocol, moving funds from $s_0$ to $s_1$. State $s_1$ represents funds deposited by the user into the Plasma smart contract waiting to be credited into the plasma chain by the operator. Funds on state $s_1$ will move to state $s_2$ after $k$ blocks. If not, the user can move funds back to $s_0$ using the \emph{Reclaim Deposit} step.
+
+State $s_3$ represents committed balances on a confirmed plasma block. Confirmed changes can be moved to $s_0$ using the \emph{Withdrawal} or \emph{Exit Asset Balance} protocol steps.
+
+State $s_2$ represents funds on the actual plasma chain in unconfirmed blocks or the \emph{Mempool}. During normal operation of the chain, balance changes are periodically committed to the plasma contract and the funds move to state $s_3$ from where they can be moved as above. When the operator is compromised, the chain can be halted and state $s_2$ is effectively deleted. User funds remain in either $s_1$ or $s_3$ and can be directly moved to $s_0$. 
+
+
+\newpage
+\section{Gluon Plasma Proof of Safety}
+
+The plasma system is safe only if every state change is safe. Enforcing the trustless constraints at every step of the protocol, every ledger entry and all ledger entry ordering creates a secure system. The tables below show all possible state changes and their enforcing fraud-proof or protocol step.
+
+\begin{table}[ht]
+\caption{\textbf{Gluon Plasma Protocol.} Every protocol step enforces all constraints.}
+\centering
+\begin{tabular}{|c|>{\columncolor{green!50}}c|>{\columncolor{violet!20}}c|>{\columncolor{yellow!50}}c|>{\columncolor{blue!20}}c|}
+\hline
+        \bfseries Step &\bfseries Segregation & \bfseries Agency & \bfseries Solvency & \bfseries Integrity \\
+\hline
+    Deposit & \ref{fp:idf} & \ref{fp:idf} & \ref{fp:idf} & \ref{fp:idf} \\
+    Reclaim Deposit & \ref{gp:reclaim} & \ref{gp:reclaim} & \ref{gp:reclaim} & \ref{gp:reclaim} \\
+    Withdraw & \ref{gp:withdrawal} & \ref{fp:fwe} & \ref{fp:cff} & \ref{fp:cff} \\
+    Exit &	\ref{gp:exit} & \ref{fp:fef} & \ref{fp:eif} & \ref{fp:cff} \\
+    New Block  &   \ref{fp:bcf}, \ref{fp:drf} &   \ref{fp:bcf} &   \ref{fp:bcf} &   \ref{fp:bcf} \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[ht]
+\caption{\textbf{Plasma Ledger Entries.} Every ledger entry enforces all constraints}
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+        \bfseries Field &\bfseries Deposit & \bfseries Withdraw & \bfseries Exit & \bfseries Trade & \bfseries Fee \\
+\hline
+    \rowcolor{yellow!50} Id & \ref{fp:bc}  & \ref{fp:bc}  & \ref{fp:bc}  & \ref{fp:bc}  & \ref{fp:bc} \\
+    \rowcolor{yellow!50} Prior & \ref{fp:dsf}  & \ref{fp:dsf}  & \ref{fp:dsf}  & \ref{fp:dsf}  & \ref{fp:dsf} \\
+    \rowcolor{yellow!50} Account &\ref{fp:idf}, \ref{fp:cff} & \ref{fp:cff} & \ref{fp:cff} & \ref{fp:cff} & \ref{fp:cff}\\
+    \rowcolor{yellow!50} Asset & \ref{fp:idf}, \ref{fp:cff} & \ref{fp:cff} & \ref{fp:cff} & \ref{fp:cff} & \ref{fp:fee}\\
+    \rowcolor{yellow!50} Balance  & \ref{fp:cff} & \ref{fp:cff} & \ref{fp:cff} & \ref{fp:cff} & \ref{fp:cff}\\
+    \rowcolor{blue!20} Price & $-$ & $-$ & $-$ & \ref{fp:prc} & \ref{fp:fee}\\
+    \rowcolor{blue!20} Qty & \ref{fp:idf}, \ref{fp:cff} & \ref{fp:cff} & \ref{fp:cff} & \ref{fp:cff}, \ref{fp:rof} & \ref{fp:cff}, \ref{fp:rof}\\
+    \rowcolor{blue!20} Time & $-$ & $-$ & $-$ & \ref{fp:ptp} & \ref{fp:ptp} \\
+    \rowcolor{violet!20} Witness & \ref{fp:idf} & \ref{fp:fwe} & \ref{fp:fef} & \ref{fp:fsf} & \ref{fp:fsf}\\
+    \rowcolor{green!50} Segregation & \ref{fp:idf}	& \ref{gp:withdrawal} & \ref{gp:exit} & \ref{fp:fsf} & \ref{fp:fee}\\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[ht]
+\caption{\textbf{Order of Ledger Entries.} Combinatorial attacks prevented.}
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+        \bfseries Attack &\bfseries Deposit  & \bfseries Withdraw & \bfseries Exit & \bfseries Trade & \bfseries Fee \\
+\hline
+
+\rowcolor{yellow!50} Unitary  & $-$  & $-$  & $-$  & \ref{fp:uf}  & \ref{fp:uf} \\
+\rowcolor{yellow!50} Replay  & \ref{fp:bcf}  & \ref{gp:withdrawal} & \ref{fp:eif}   & \ref{fp:rof}, \ref{fp:ptp}  & \ref{fp:rof}, \ref{fp:ptp} \\
+\rowcolor{yellow!50} Suppress  &   \ref{fp:bcf}  & \ref{gp:exit} & \ref{fp:eif}   &  No effect\footnotemark & No effect\footnotemark \\
+\rowcolor{yellow!50} Reorder  & \ref{fp:cff}   & \ref{fp:cff} & \ref{fp:eif}   & \ref{fp:ptp}  & \ref{fp:ptp} \\
+\hline
+\end{tabular}
+\end{table}
+\addtocounter{footnote}{-2}
+ \stepcounter{footnote}\footnotetext{Suppressed \emph{Trade} entries are equivalent to cancelled orders}
+\stepcounter{footnote}\footnotetext{Suppressed \emph{Fee} entries are equivalent to free trades}
+\newpage
+\centering
+\input{figures/plasmalogo.tex}
+
 \end{document}
