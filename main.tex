@@ -3,50 +3,39 @@
 \usepackage[T1]{fontenc}    % accents
 \usepackage[utf8]{inputenc} % for non-ascii
 \usepackage[autolanguage]{numprint}       % print numbers with commas etc
+\usepackage{mdframed}
+\usepackage[font={small,it}]{caption}
 
 % math, symbols, fonts
-\usepackage{subfig}
 \usepackage{amsthm}
 \usepackage{amsmath}        
 \usepackage{mathrsfs}       
 \usepackage{amssymb}        
 \usepackage{amsfonts}       
 
+%layout
+\usepackage{subfig}
 \usepackage{geometry}       % layout tables and figures automagically
 \usepackage[table]{xcolor}
 \usepackage{colortbl}
+
+%drawing
 \usepackage{pgf}
 \usepackage{tikz}
-\usepackage{mdframed}
-\usetikzlibrary{arrows,automata,positioning,calc}
+\usetikzlibrary{arrows,automata,positioning,calc,svg.path}
 \usepackage[compat=1.1.0]{tikz-feynhand}
 
-\usepackage[font={small,it}]{caption}
-
 \usepackage[texcoord=true]{eso-pic}
+\usepackage{hyperref}
+\usepackage{todonotes}
+
 \AddToShipoutPictureBG{
  \AtStockUpperLeft{
  \hspace{1cm}
- \begin{tikzpicture}[baseline=(k.base)]
-\begin{feynhand}
-\vertex (k) at (1,3);
-\vertex (a) at (0.125,-1); 
-\vertex (b) at (-1,0); 
-\vertex (c) at (0.875,2);
-\vertex (d) at (2,1) {};
-\vertex [dot, gray] (o) at (0,0) {}; 
-\vertex [dot, gray] (p) at (1,1) {}; 
-\propag [fermion, gray] (o) to (a);
-\propag [fermion, gray] (b) to (o); 
-\propag [glu, gray] (o) to (p);
-\propag [fermion, gray] (c) to (p);
-\propag [fermion, gray] (p) to (d);
-\end{feynhand}
-\end{tikzpicture}
+\input{figures/shipoutgluon.tex}
  }
 }
  
-\usepackage{hyperref}
 \hypersetup{
   colorlinks   = true,    % Colours links instead of ugly boxes
   urlcolor     = blue,    % Colour for external hyperlinks
@@ -54,16 +43,44 @@
   citecolor    = red      % Colour of citations
 }
 
+\newcommand*{\svgat}{%
+  \leavevmode
+  \tikz[baseline=0pt, x=1pt, y=1pt, scale=1em/1000]\fill
+    svg {
+      M588 457v-241c0 -15 0 -66 35 -66c66 0 73 90 73 182c0 241 -171 351 -308
+      351c-164 0 -307 -145 -307 -336c0 -179 130 -336 312 -336c94 0 187 24
+      272 64c5 3 7 3 23 3h9c16 0 23 0 23 -10c0 -16 -120 -51 -146 -57c-64 -15
+      -128 -22 -180 -22 c-200 0 -338 170 -338 358c0 199 150 358 333 358c161
+      0 332 -133 332 -367c0 -107 -14 -210 -102 -210c-38 0 -90 19 -100 71c-30
+      -42 -78 -71 -132 -71c-103 0 -198 93 -198 219s95 219 198 219c39 0 91
+      -14 137 -77c6 -7 7 -8 23 -8h17c23 0 24 -1 24 -24zM519 262v170 c0 18 0
+      21 -13 40c-36 56 -84 72 -116 72c-73 0 -132 -86 -132 -197s60 -197 132
+      -197c20 0 71 6 115 69c14 21 14 25 14 43z
+    }
+    (current bounding box.west) ++(-56, 0) % left side bearing
+    (current bounding box.east) ++(56, 0) % right side bearing
+  ;%
+}
+
+\newcommand*{\svgperiod}{%
+  \leavevmode
+  \tikz[baseline=0pt, x=1pt, y=1pt, scale=1em/1000]\fill
+    svg {
+      M192 53c0 -29 -24 -53 -53 -53s-53 24 -53 53s24 53 53 53s53 -24 53 -53z
+    }
+    (current bounding box.west) ++(-86, 0) % left side bearing
+    (current bounding box.east) ++(85, 0) % right side bearing
+  ;%
+}
 
 \title{Gluon Plasma \\
 \large A Plasma Variant for Non-custodial Exchanges}
 
 \author{Bharath Rao \\ 
 Leverj\\
-bharath@leverj.io \\
+bharath\svgat leverj\svgperiod io \\
 \tiny WORKING DRAFT}
 
-\usepackage{todonotes}
 \newcommand{\question}[2]{\todo[inline,author=#1]{#2}}
 \newcommand{\reponse}[2]{\todo[inline,color=green,author=#1]{#2}}
 
@@ -642,7 +659,7 @@ M_B = G.balanceRoot
 \end{equation}
 
 \subsubsection{Invalid Deposit Fraud}\label{fp:idf}
-Operator creates a deposit entry with a fake, incorrect or already reclaimed deposit hash $H$ (i.e., credits an incorrect amount or asset) 
+Operator creates a deposit entry with a fake, incorrect or already reclaimed deposit hash $H$ (i.e., credits an incorrect account, amount or asset) 
 
 \textbf{Proof.} 
 Operator signed \emph{Deposit} ledger entry $e$. The plasma contract $C$ cross-checks the entry hash as its own creation. An invalid deposit entry causes a chain halt.
@@ -796,7 +813,7 @@ Any ledger entry $e$. The execution of orders should not precede the orders and 
 \subsubsection{Unit Fraud}\label{fp:uf}
 Every ledger entry represents an entire state change. The exception is an execution, which is represented by four \emph{Trade} entries and up to four \emph{Fee} entries. The operator may put fewer or more entries to violate solvency.
 
-\textbf{Proof.} \emph{Trade} entries for a given execution $ex$ should have exactly four entries and their quantities should add up to zero.
+\textbf{Proof.} \emph{Trade} entries for a given execution $ex$ should have exactly four entries and their quantities should add up to zero. Similarly, two or four \emph{Fee} entries $f_i$ may exist per execution. If not, validators proceed to \emph{Vote to halt}.
 \begin{equation}
     ex.length = 4
 \end{equation}
@@ -807,15 +824,15 @@ ex(A_1,Z_1).Qty = -ex(A_2,Z_1).Qty
 ex(A_2,Z_2).Qty = -ex(A_1,Z_2).Qty 
 \end{equation}
 
-Similarly, up to four \emph{Fee} entries $f_i$ may exist per execution.
+
 \begin{equation}
-    ex.length = 4 \lor ex.length = 2
+    fee.length = 4 \lor fee.length = 2
 \end{equation}
 \begin{equation}
-f_1(A_1,Z_1).Qty = -f_2(A_2,Z_1).Qty 
+fee(A_1,Z_1).Qty = -fee(A_2,Z_1).Qty 
 \end{equation}
 \begin{equation}
-f_3(A_1,Z_1).Qty = -f_4(A_2,Z_1).Qty 
+fee(A_2,Z_2).Qty = -fee(A_1,Z_2).Qty 
 \end{equation}
 \subsection{Validator Considerations}
 
@@ -827,8 +844,6 @@ Solvency proofs require keeping track of the last balance of every asset for eve
 Overfill and price-time priority proofs requires retaining references to the last \emph{Trade} and \emph{Fee} ledger entries of every Asset regardless of user. The maximum space required is: \emph{2 $\times$ number of listed assets}.
 
 \subsubsection{Adverserial} Spam attacks to overwhelm validators would require an attacker to create an excessive number of accounts since listing assets is controlled by the exchange. Requiring a minimum balance to trade, minimum withdrawal sizes and a reasonable tick size should ensure that validators are not spammed by millions of dust accounts. 
-
-During extended trends, the operator may reduce the maximum expiry time to prevent large number of partially filled orders that need to be tracked.
 
 \section*{Future Work}
 Zk-snarks or zk-starks may be a succinct alternative to a large set of separate proofs. A complete chain of proof-of-correctness exist between main-chain commitments. If these can be coalesced into a single compact proof that can be committed to the main-chain and verified by the plasma contract, the data unavailability problem can be eliminated, enabling us to eliminate unconfirmed blocks and voting to halt. This is an active research subject at the time of this writing.
@@ -948,7 +963,7 @@ A series of perfect intermediaries between two network participants is equivalen
 \begin{proof}
 A perfect intermediary is transitive. 
 \begin{equation}
-    v_1 \rightarrow v_2 \rightarrow v_3 \implies v_1 \rightarrow v_3
+    v_s \rightarrow v_i \rightarrow v_t \implies v_s \rightarrow v_t
 \end{equation}
 Perfect intermedairy nodes can be disregarded from analysis and a series of perfect intermediaries from vertex $v_s$ to $v_t$ is equivalent to a   directed edge from $v_s$ to $v_t$. 
 \end{proof}
@@ -1026,14 +1041,12 @@ The plasma system is safe only if every state change is safe. Enforcing the trus
 
 \rowcolor{yellow!50} Unitary  & $-$  & $-$  & $-$  & \ref{fp:uf}  & \ref{fp:uf} \\
 \rowcolor{yellow!50} Replay  & \ref{fp:bcf}  & \ref{gp:withdrawal} & \ref{fp:eif}   & \ref{fp:rof}, \ref{fp:ptp}  & \ref{fp:rof}, \ref{fp:ptp} \\
-\rowcolor{yellow!50} Suppress  &   \ref{fp:bcf}  & \ref{gp:exit} & \ref{fp:eif}   &  No effect\footnotemark & No effect\footnotemark \\
+\rowcolor{yellow!50} Suppress  &   \ref{fp:bcf}  & \ref{gp:exit} & \ref{fp:eif}   &  No effect\footnotemark & No effect \\
 \rowcolor{yellow!50} Reorder  & \ref{fp:cff}   & \ref{fp:cff} & \ref{fp:eif}   & \ref{fp:ptp}  & \ref{fp:ptp} \\
 \hline
 \end{tabular}
 \end{table}
-\addtocounter{footnote}{-2}
- \stepcounter{footnote}\footnotetext{Suppressed \emph{Trade} entries are equivalent to cancelled orders}
-\stepcounter{footnote}\footnotetext{Suppressed \emph{Fee} entries are equivalent to free trades}
+\footnotetext{Suppressed \emph{Trade} entries are equivalent to cancelled orders and suppressed \emph{Fee} entries are equivalent to free trades.}
 \newpage
 \centering
 \input{figures/plasmalogo.tex}

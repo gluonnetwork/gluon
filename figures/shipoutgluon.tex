@@ -1,0 +1,16 @@
+ \begin{tikzpicture}[baseline=(k.base)]
+\begin{feynhand}
+\vertex (k) at (1,3);
+\vertex (a) at (0.125,-1); 
+\vertex (b) at (-1,0); 
+\vertex (c) at (0.875,2);
+\vertex (d) at (2,1) {};
+\vertex [dot, gray] (o) at (0,0) {}; 
+\vertex [dot, gray] (p) at (1,1) {}; 
+\propag [fermion, gray] (o) to (a);
+\propag [fermion, gray] (b) to (o); 
+\propag [glu, gray] (o) to (p);
+\propag [fermion, gray] (c) to (p);
+\propag [fermion, gray] (p) to (d);
+\end{feynhand}
+\end{tikzpicture}
