@@ -2,7 +2,6 @@
 
 Gluon Plasma is plasma for non-custodial exchanges. 
 
-$\sigma$
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=4cm,
                     semithick]
 %  \tikzstyle{every state}=[fill=red,draw=none,text=white]
