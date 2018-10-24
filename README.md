@@ -1,10 +1,9 @@
 # Gluon Plasma
 
-Gluon Plasma is plasma for non-custodial exchanges. 
+Gluon Plasma is plasma for non-custodial exchanges.
 
-<p align="center"><img src="https://rawgit.com/bharathrao/gluon (fetch/master/svgs/592291f659f40ecacb466c9762a854d7.svg" align=middle width=792.96855pt height=154.52052pt/></p>
+<p align="center"><img src="svgs/state.svg" align=middle/></p>
 
-## Your feedback, especially security feedback, is VERY important.
 
 # Benefits
 
@@ -56,7 +55,7 @@ etc. etc. most of the UX has been straightened out.
 4. Operator X creates a ledger entry D referencing H and crediting N amount of Z to A. A can trade once D is published.
 5. Operator X commits an ordered Merkle root depositRoot of all deposits for G-block G. Any ignored deposits need to be reclaimed by the user.
 
-## Reclaim Deposit 
+## Reclaim Deposit
 1. A submits (A, Z, N, G, nonce) with exclusion proof (H /∈ depositRoot).
 2. C computes hash H of (A, Z, N, G, nonce) and verifies that H has not already been reclaimed and has been excluded from depositRoot of G.
 3.C marks H as reclaimed and transfers quantity N of asset Z to account A.
@@ -78,5 +77,3 @@ etc. etc. most of the UX has been straightened out.
 5. C transfers balance of Z to A on main chain and marks(A, Z) as Exited by storing ExitBlock(A, Z) =Gi+k thus preventing all further activity for(A, Z).
 
 ### See full paper for rest.
-
-
