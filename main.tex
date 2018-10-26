@@ -80,6 +80,7 @@
 Leverj\\
 bharath\svgat leverj\svgperiod io \\
 \tiny WORKING DRAFT}
+\date{October 23, 2018}
 
 \newcommand{\question}[2]{\todo[inline,author=#1]{#2}}
 \newcommand{\reponse}[2]{\todo[inline,color=green,author=#1]{#2}}
@@ -813,7 +814,7 @@ Any ledger entry $e$. The execution of orders should not precede the orders and 
 \subsubsection{Unit Fraud}\label{fp:uf}
 Every ledger entry represents an entire state change. The exception is an execution, which is represented by four \emph{Trade} entries and up to four \emph{Fee} entries. The operator may put fewer or more entries to violate solvency.
 
-\textbf{Proof.} \emph{Trade} entries for a given execution $ex$ should have exactly four entries and their quantities should add up to zero. Similarly, two or four \emph{Fee} entries $f_i$ may exist per execution. If not, validators proceed to \emph{Vote to halt}.
+\textbf{Proof.} \emph{Trade} entries for a given execution $ex$ should have exactly four entries and their quantities should add up to zero. Similarly, two or four \emph{Fee} entries may exist per execution. If not, validators proceed to \emph{Vote to halt}.
 \begin{equation}
     ex.length = 4
 \end{equation}
