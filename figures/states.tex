@@ -1,18 +1,19 @@
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=4cm,
                     semithick]
-%  \tikzstyle{every state}=[fill=red,draw=none,text=white]
 
   \node[initial,state,accepting,fill=green!50] (A)                    {$s_0$};
-  \node[state,fill=yellow]         (B) [above right of=A] {$s_1$};
-  \node[state,fill=yellow]         (D) [below right of=A] {$s_3$};
-  \node[state,fill=orange!66]         (C) [below right of=B] {$s_2$};
+  \node[state,fill=yellow]                     (B) [above right of=A] {$s_1$};
+  \node[state,fill=yellow]                     (D) [below right of=A] {$s_3$};
+  \node[state,fill=orange!66]                  (C) [below right of=B] {$s_2$};
  
   \path[every node/.style={sloped,anchor=north,auto=false}]
-        (A) edge   node {Deposit} (B)
-        (B) edge [bend right] node [anchor=south,auto=true] {Reclaim} (A)
-            edge [color=blue]  node {On Ledger} (C)
+        (A) edge               node {Deposit}                             (B)
+        (B) edge [bend right]  node [anchor=south,auto=true] {Reclaim}    (A)
+            edge [color=blue]  node {On Ledger}                           (C)
         (C) edge [bend right]  node [anchor=south,auto=true] {Halt Chain} (B)
-            edge [color=blue,loop right,anchor=east,auto=true] node [sloped=false,anchor=west,auto=true] {Trades} (C)
-            edge              node {Submit Block} (D)
-        (D) edge              node {Withdraw/Exit} (A);
+            edge [color=blue,loop right,anchor=east,auto=true] 
+                               node [sloped=false,anchor=west,auto=true] 
+                               {Trades}                                   (C)
+            edge              node {Submit Block}                         (D)
+        (D) edge              node {Withdraw/Exit}                        (A);
  \end{tikzpicture}
