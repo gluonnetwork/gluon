@@ -73,14 +73,16 @@
   ;%
 }
 
-\title{Gluon Plasma \\
-\large A Plasma Variant for Non-custodial Exchanges}
+\title{Gluon Layer2 \\
+\large A Plasma Variant for Non-custodial Exchanges \& DeFi}
 
-\author{Bharath Rao \\ 
-Leverj\\
+\author{Bharath Rao \\
+Leverj\svgperiod io \& Gluon\svgperiod network\\
 bharath\svgat leverj\svgperiod io \\
-\tiny WORKING DRAFT}
-\date{October 23, 2018}
+\tiny First published: October 23, 2018}
+
+\date{November 01, 2020}
+
 
 \newcommand{\question}[2]{\todo[inline,author=#1]{#2}}
 \newcommand{\reponse}[2]{\todo[inline,color=green,author=#1]{#2}}
@@ -92,22 +94,20 @@ bharath\svgat leverj\svgperiod io \\
 
 \begin{abstract}
 
-        We introduce a plasma sidechain designed specifically for non-custodial, high-speed, low-latency trading. We explore extending the value proposition of plasma to a financial institution using comprehensive set of fraud-proofs to enforce correctness and voting to handle data unavailability. We describe a hybrid DEX that enables us to trade at high-speed, at low gas cost, and with support for fast withdrawals without handing over funds custody to the sidechain operator. 
+        We introduce a plasma sidechain designed specifically for non-custodial, high-speed and low-latency trading. We explore how plasma can be utilized by a financial institution using a comprehensive set of fraud-proofs to enforce correctness and voting to handle data unavailability. We describe a hybrid DEX that enables us to trade at high-speed, low gas cost, and with support for fast withdrawals without custody of funds by any centralized sidechain operator.
 \end{abstract}
 
 \section{Introduction}
 
-The largest use case of cryptocurrencies is trading, which is currently dominated by centralized exchanges. Users who trade on centralized exchanges tolerate custodial risk for the benefits of low-latency and high-speed trading. We aim to break this dichotomy and present a protocol that enables low-latency, high-speed trading without custodial risks. 
-Sidechain models such as plasma allow us to leverage the benefits of blockchain while using only a small footprint on the main chain. We introduce a flavor of plasma designed especially for exchanges to enable trustless non-custodial trading.
+The largest use case of cryptocurrencies is trading, which is currently dominated by centralized exchanges. Users who trade on centralized exchanges tolerate custodial risk for the benefits of low-latency and high-speed trading. We aim to break this dichotomy and present a layer 2 protocol utilizing rollups that enables low-latency, high-speed trading without custodial risks. Our Sidechain model gluon plasma allows us to leverage the benefits of blockchain while only requiring a small footprint on the main chain. We introduce a variant of plasma designed specifically for exchanges to enable trustless non-custodial trading.
 
 \section{Previous Work}
 
-Nakamoto’s breakthrough innovation, Bitcoin\cite{Nak09} made trustless transactions feasible and triggered the cryptocurrency boom that is likely still in its infancy. A currency whose rules are impractical to break even for state actors has triggered thousands of projects that hope to leverage its underlying blockchain technology to create self-compliant systems. 
-Ethereum\cite{Eth14} extended the blockchain into a Turing-complete world computer. This was formalized in Gavin Wood’s seminal yellow paper\cite{Gav15}. Ethereum became the platform of choice for smart contracts that have generalized state and logic. Plasma\cite{PB17} enables a high transaction rate using a sidechain with safe exit to the main chain. Multiple flavors of plasma exist, with various tradeoffs between user burden, speed and convenience.
+ Satoshi Nakamoto’s breakthrough innovation, Bitcoin\cite{Nak09} made trustless transactions feasible and triggered the cryptocurrency boom that is likely still in its infancy. A currency whose rules are infeasible to break even for state actors has triggered thousands of projects that hope to leverage its underlying blockchain technology to create self-compliant systems. Ethereum\cite{Eth14} created a blockchain that is Turing complete and functions as a world computer. This was formalized in Gavin Wood’s seminal yellow paper\cite{Gav15}. Ethereum became the platform of choice for smart contracts that have generalized state and logic. Plasma\cite{PB17} enables a high transaction rate using a sidechain with safe exit to the main chain. Multiple flavors of plasma exist, with various tradeoffs between user burden, speed and convenience.
 
 \section{Trustless Finance}
 
-The appeal of cryptocurrency is its ability to self-regulate and confirm with its internal consensus rules without the need of a centralized enforcer. This has been variously characterized as being \emph{permissionless, decentralized} or \emph{trustless}. 
+The appeal of cryptocurrency is its ability to self-regulate and confirm with internal consensus rules without the need of a centralized enforcer. This has been described as being \emph{permissionless, decentralized} or \emph{trustless}.
 
 What exactly makes something trustless? A system is trustless if all assets are always in the custody of their owners, transfers do not need a trusted intermediary and the integrity of all asset transfers can be verified by network participants with certainty.
 
@@ -118,9 +118,9 @@ The above definition translates to the following four constraints\footnote{Appen
     \item \emph{Solvency:} Only legitimately created and previously unspent coins can be spent.
     \item \emph{Integrity:} Coin movement should comply with all network consensus rules\footnote{Consensus rules modeled as constraints:                             \url{https://en.bitcoin.it/wiki/Protocol_rules}}.
 \end{enumerate}
-Segregation enforces self-custody and removes the need for trusted third parties. Agency enables tracing a coin’s provenance to its creation. Solvency ensures that the scarcity and value are preserved. Integrity ensures that reliable coin transfer can be verified by observers. All four combined enable the creation of a trustless value network. 
+Segregation enforces self-custody and removes the need for trusted third parties. Agency enables tracing a coin’s provenance to its creation. Solvency ensures that the scarcity and value are preserved. Integrity ensures that reliable coin transfer can be verified by observers. All four combined enable the creation of a trustless value network.
 
-While solvency may superficially appear to be simply another integrity constraint, it is different in an important aspect. Most integrity violations can be detected immediately from an examination of the transaction bytes, leading to the rejection of the associated transaction. Solvency (i.e., double-spend protection) is handled differently as it requires a conflicting transaction to invalidate an otherwise valid transaction. Nakamoto consensus\cite{nakcons} eventually resolves any solvency issues in Proof-of-work (POW) blockchains\cite{DN93}. It is important to address solvency correctly in Proof-of-Authority (POA)\cite{parPOA} systems to avoid catastrophic losses.
+While solvency may superficially appear to be another integrity constraint, it is fundamentally important for our functionality. Most integrity violations can be detected immediately from an examination of the transaction bytes, leading to the rejection of the associated transaction. Solvency (i.e., double-spend protection) is handled differently as it requires a conflicting transaction to invalidate an otherwise valid transaction. Nakamoto consensus\cite{nakcons} eventually resolves any solvency issues in Proof-of-work (POW) blockchains\cite{DN93}. It is important to address solvency correctly in Proof-of-Authority (POA)\cite{parPOA} systems to avoid catastrophic losses.
 
 \subsection{A Graph-Theoretic Model of a Trustless UTXO System}
 We represent addresses holding coins using nodes in a graph and movements of coins as directed edges. In an unspent transaction output system, coins can be merged and split in a transaction and every transaction output is a separate coin that needs to be spent with a separate signature. An output therefore is an inbound edge into an address.
@@ -132,9 +132,9 @@ We represent addresses holding coins using nodes in a graph and movements of coi
 \caption{The same address may hold unspent outputs from multiple transactions. The address on the right holds two UTXOs from txA and one from txB}
 \end{figure}
 
-A new transaction can spend multiple unspent outputs from different transactions and distribute them to multiple recipients\cite{Max13}. A transaction can be validated by checking that outputs are sent directly to the recipient (\emph{Segregation}), all spent inputs are signed (\emph{Agency}), only valid unspent balances are spent (\emph{Solvency}) and the transaction complies with all consensus rules (\emph{Integrity}). Once these rules are validated for each UTXO, they can all be marked as verified edges. 
+A new transaction can spend multiple unspent outputs from different transactions and distribute them to multiple recipients[8]. A transaction can also be validated by checking that outputs are sent directly to the recipient (\emph{Segregation}), all spent inputs are signed (\emph{Agency}), only valid unspent balances are spent (\emph{Solvency}) and the transaction complies with all consensus rules (\emph{Integrity}). Once these rules are validated for each UTXO, they can all be marked as verified edges.
 
-In UTXO networks, coins are created into the control of the owner. For example, the bitcoin network’s coinbase transaction creates block reward coins going from \emph{Origin}\footnote{Bitcoin uses the UTXO with transaction Id 0, Output index -1 to denote the \emph{Origin}\cite{BTCProtocol}.} into the owner’s address. 
+In UTXO networks, coins are created directly to the control of the desired owner. For example, the bitcoin network’s coinbase transaction creates block reward coins going from \emph{Origin}\footnote{Bitcoin uses the UTXO with transaction Id 0, Output index -1 to denote the \emph{Origin}\cite{BTCProtocol}.} into the owner’s address.
 \begin{figure}[ht]
 \begin{center}
 \input{figures/utxopaths.tex}
@@ -142,18 +142,17 @@ In UTXO networks, coins are created into the control of the owner. For example, 
 \caption{UTXOs as validated paths flowing from origin transaction to addresses }
 \end{figure}
 
-An UTXO model’s safety can be modeled as a valid path in a directed graph. 
-An UTXO is valid if and only if there is a verified path to it from origin: 
+A UTXO model’s safety can be represented as a valid path in a directed graph. A UTXO is valid if and only if there is a verified path to it from origin:
 \begin{enumerate}
     \item An unbroken chain of signatures (agency)
     \item to the origin transaction (segregation) 
     \item of valid consensus confirming transfers (integrity and solvency)
 \end{enumerate}
-Verification is onerous in a large graph. Since coins are split in most transactions, it’s not sufficient to do a breadth-first search. Rather, all inputs of every transaction that participates in the path should be verified as valid. This rapidly becomes a large set with every new transfer, similar to a human’s list of ancestors. The number of potential paths is very large, so blockchains amortize validation by downloading every transaction and verifying them as they are added. This allows us to assume that every reference to an already verified transaction is a valid path and only verify the most recently added UTXOs.
+Verification is onerous in a large graph because coins are split in most transactions and it’s not sufficient to do a breadth-first search. Rather, all inputs of every transaction that participates in the path should be verified as valid. This rapidly becomes a large set with every new transfer, similar to a human’s list of ancestors. The number of potential paths is very large, so blockchains amortize validation by downloading every transaction and verifying them as they are added. This allows us to assume that every reference to an already verified transaction is a valid path and only verify the most recently added UTXOs.
 
 \section{Exchange Security Models}
 \subsection{Centralized Exchanges}
-Custody and ownership are intertwined and transferred together in an UTXO coin, but centralized exchanges split the two concerns. A user gives up custody to the exchange when he deposits coins into his deposit address but retains ownership.
+Custody and ownership are intertwined and transferred together in a UTXO model, but centralized exchanges remove complete control of the coins. A user gives up custody to the exchange when he deposits coins into his deposit address but retains ownership only when granted by the exchange.
 \begin{figure}[ht]
 \begin{center}
 \input{figures/CEX.tex}
@@ -161,17 +160,17 @@ Custody and ownership are intertwined and transferred together in an UTXO coin, 
 \caption{Centralized exchange showing no constraints on funds movement among user addresses $A_i$ and deposit addresses $D_i$, rendering security proofs infeasible. }
 \end{figure}
 
- This situation gives rise to the chances of someone else losing your coins through malice or general incompetence. Exchanges try to limit this risk by splitting their holdings into a majority cold wallet\cite{BTCColdStorage} and minority hot wallet holdings. The cold wallet custody is vested among a small set of trusted officers to reduce risk of theft.
+This situation gives rise to the chances of an outside actor losing your coins through malice or general incompetence. Exchanges try to limit this risk by splitting their holdings primarily into a cold wallet\cite{BTCColdStorage} and only the necessary amounts in a hot wallet for operations. The cold wallet custody is vested among a small set of trusted officers to reduce the risk of theft.
 
-Centralized exchanges have no security properties since none of the four constraints are enforced. Segregation does not exist, since depositing involves essentially giving up custody to the operator; and anyone can deposit coins into any account or withdraw to any address enabling phishing attacks. 
+Centralized exchanges have no security properties since none of the four constraints are enforced. Segregation does not exist, since depositing involves essentially giving up custody to the operator and anyone can deposit coins into any account or withdraw to any address enabling phishing attacks.
 
-Without self-custody, there is no agency. However, an exchange may simulate agency via associated side channels such as email confirmations or two-factor authentication (2FA). Ultimately, all side channel verifications boil down to an identity check plus association of the identity with the account. This interface is not seamless and provides for a variety of attacks. Intertwined identity and agency using crypto addresses and signatures are stronger than any mobile 2FA side channel association and authentication\cite{DLRS14}. 
+Without self-custody, user control is out of their control. However, an exchange may simulate agency via associated side channels such as email confirmations or two-factor authentication (2FA). Ultimately, all side channel verifications boil down to an identity check plus association of the identity with the account. This interface is not seamless and provides for a variety of attacks. Intertwined identity and agency using crypto addresses and signatures are stronger than any mobile 2FA identity association and authentication\cite{DLRS14}.
 
-There is no simple way to prove solvency of user funds continuously. Even with periodic proof-of-reserves, there is no way for the exchange to prove that it’s not running a fractional reserve since there is no solvency constraints for withdrawals or other transactions. Consequently, theft is often not detected for quite some time and often operators may lose user funds in risky ventures without anyone’s knowledge.
+There is no simple way to prove solvency of user funds continuously. Even with periodic proof-of-reserves, there is no way for the exchange to prove that it’s not running a fractional reserve since there are no solvency constraints for withdrawals or other transactions. Consequently, theft is often not detected for immediately and often operators may lose user funds in risky practices without anyone’s knowledge.
 
-The absence of publicly verifiable integrity checks eliminates any practical way to prove the invalidity of balance changes caused by maleficent operators or random bugs in the exchange code. This situation enables exchanges to engage in or turn a blind eye to all manner of manipulation; for example, giving friends the ability to place large orders without funds backing such orders.
+The absence of publicly verifiable integrity checks eliminates any practical way to prove the invalidity of balance changes caused by maleficent operators, bugs in the exchange code or other factors. This situation enables exchanges to engage in or turn a blind eye to all forms of manipulation; for example, giving friends the ability to place large orders without funds backing such orders.
 
-In summary, all major exchange problems are a result of their inability to enforce the four trustless constraints. We believe this is true for all other financial systems that may be built on smart contract capable blockchains.
+In summary, all major exchange problems are a result of their inability to enforce the four trustless constraints.
 
 \subsection{On-chain Exchanges (DEX)}
 \begin{figure}[ht]
@@ -180,18 +179,17 @@ In summary, all major exchange problems are a result of their inability to enfor
 \end{center}
 \caption{On-chain exchanges provide safety by syncing every transaction to the blockchain but are constrained on scale and latency. }
 \end{figure}
-On-chain exchanges can enforce the above constraints quite easily since interacting with the network and posting a blockchain transaction do most of the heavy lifting.
-The early decentralized exchanges models are fully on-chain, i.e., they use a smart contract to hold order books or reserves of tokens that users can interact with to perform trades. Naturally, the per transaction costs of such exchanges are very high and latency is limited by blockchain speeds, usually at intolerable levels. Such exchanges are also susceptible to a variety of front-running and DOS attacks\cite{levprotocol}.
+On-chain exchanges can enforce the above constraints quite easily since interacting with the network and posting a blockchain transaction do most of the heavy lifting. The early decentralized exchanges models are fully on-chain because they use a smart contract to hold order books or reserves of tokens that users can interact with to perform trades on their native blockchain. Naturally, the high transaction costs exacerbated by congestion of such exchanges are very high and confirmation times are limited by the underlying blockchain transactions per second, usually at intolerable levels. Such exchanges are also susceptible to a variety of front-running and DoS attacks\cite{levprotocol}.
 
 \subsection{Hybrid Exchanges}
-A hybrid exchange uses a smart contract to hold user funds and enables trustless trades between participants facilitated by a centralized entity. Although this can be a lot faster since orders don’t need to go into the contract until filled, proving safety is a bit more involved\cite{levprotocol}. 
+A hybrid exchange uses a smart contract to hold user funds and enables trustless trades between participants facilitated by a centralized entity. Although this can be a lot faster since orders don’t need to go into the contract until filled, proving safety is a more involved process\cite{levprotocol}.
 
-Since the smart contract can identify the source address and the network has already verified the user signature, its trivial to credit deposited funds directly into the custody of the sender, making enforcement of the segregation constraint straight forward --- the operators of the exchange never take custody of funds. 
-
-This scheme also facilitates solvency checks ensuring that the exchange is never at fractional reserve. The integrity checks are a bit more involved and require proving orders and fills are unique, have not been replayed and there are no race conditions between fills and cancels. This is accomplished by storing filled and cancelled orders or execution in the contract resulting in high costs and low speeds\cite{WA17}. In addition, price-time priority proofs need to be added to verify that the exchange is not skimming the users.
+Since the smart contract can identify the source address and the network has already verified the user signature, it's trivial to credit deposited funds directly into the custody of the sender, making enforcement of the segregation constraint straight forward — the operators of the exchange never take custody of funds.
+This scheme also facilitates solvency checks ensuring that the exchange is never running a fractional reserve system. The integrity checks are a bit more involved and require proving that orders and fills are unique, have not been replayed and there are no race conditions between fills and cancels. This is accomplished by storing filled and cancelled orders or execution in the contract resulting in high fee costs and lower speeds
+s\cite{WA17}. In addition, price-time priority proofs need to be added to verify that the exchange is not skimming trades.
 
 \section{Plasma and Plasma Exchanges}
-One way to dramatically reduce on-chain cost and improve latencies is to use a specialized sidechain to execute trades and perform settlements. This would reduce the main-chain footprint to deposits, withdrawals and occasional commitment of state integrity to the main chain. Plasma as a sidechain on Ethereum is the most advanced option as of this writing.
+Our proposed way to dramatically reduce on-chain cost and improve latencies is to use a specialized sidechain to execute trades and perform settlements. This would reduce the committed transaction footprint of deposits, withdrawals and occasional commitment of state integrity to the main chain. Plasma as a sidechain on Ethereum provides the optimal foundation for the Leverj use case.
 
 \subsection{Plasma Classic Outline}
 The original idea of plasma (Plasma Classic) has blossomed into multiple flavors to suit the needs of various projects, but the central idea is essentially the same\footnote{Originally posted at: \url{https://ethresear.ch/t/plasma-classic-compact-spec/1711}}: \emph{The sidechain is valid as long as all changes on it are verifiable. There is a way to safely exit when the sidechain is no longer verifiable}.
@@ -215,22 +213,23 @@ The original idea of plasma (Plasma Classic) has blossomed into multiple flavors
 \caption{Plasma exchanges use smart contracts to enforce integrity without syncing trades to the main chain, combining centralized performance and decentralized safety. }
 \end{figure}
 
-The plasma exchange can scale up to the speed of centralized exchanges by avoiding the need to sync trades and orders onto the on-chain smart contract. The main-chain plasma contract that holds custody of user funds at any time has no knowledge of the exact balance of any user. It’s the responsibility of the user to provide proof-of-solvency for withdrawals. In interactive plasma variants, the user may have to post a bond that would be forfeited in case of a successful challenge by another network participant.
+A plasma exchange can scale up to the speed of centralized exchanges by avoiding the need to sync trades and orders onto the on-chain smart contract. The main-chain Gluon contract that holds custody of user funds at any time has no knowledge of the exact balance of any user. It’s the responsibility of the user to provide proof-of-solvency for withdrawals. In interactive plasma variants, the user may have to post a bond that would be forfeited in case of a successful challenge by another network participant.
 
 The proof of safety of the plasma exchange rests on the proof that the exchange can enforce \emph{Segregation, Agency, Solvency} and \emph{Integrity} in all of its operations in a manner verifiable by all participants. 
 
 \subsection{UTXO Based Plasma Issues for Exchanges}
 \begin{enumerate}
     \item \emph{Witness Baggage.} Agency (ownership) is proved by signatures going back to the main-chain deposit transaction. This list can get very large in an exchange with high volume.
-    \item \emph{Onerous Ownership.} User is required to regularly check transactions on plasma sidechain for fungible coins or main chain for non-fungible coins.
-    \item \emph{Stampede to Exit.} The huge number of UTXOs that need to exit on data unavailability suggest that the actual mechanics of exiting  cannot be reliably modeled due to unpredictable congestion and fees. There is a good chance that if disaster strikes, orderly exit may be impractical.
-    \item \emph{UTXO Shredding.} This is the tendency of an UTXO based system to fragment  all outputs to the smallest possible size. This is a serious scalability limitation for exchanges. This is a natural outcome of price-time priority matching. Orders are matched by best price, followed by best time of order placement. Order matches will generate a partial match for the larger sized order and a full match for the smaller size order. The exchanged assets will be received in smaller outputs with every future match and this process will repeat over time resulting in each user holding a large number of smaller and smaller outputs. This amplifies the load on the sidechain even more dramatically. 
+    \item \emph{Onerous Ownership.} Users are required to regularly check transactions on plasma sidechains for fungible coins or main chain for non-fungible coins.
+    \item \emph{Stampede to Exit.} The huge number of UTXOs that are needed to exit on data unavailability suggest that the actual mechanics of exiting cannot be reliably modeled due to unpredictable congestion and fees. There is a good chance that if that plasma sidechain fails integrity checks, orderly exit may be impractical.
+    \item \emph{UTXO Shredding.} This is the tendency of a UTXO based system to fragment all outputs to the smallest possible size. This is a serious scalability limitation for exchanges. This is a natural outcome of price-time priority matching. Orders are matched by best price, followed by best time of order placement. Order matches will generate a partial match for the larger sized order and a full match for the smaller size order. The exchanged assets will be received in smaller outputs with every future match and this process will repeat over time resulting in each user holding a large number of smaller and smaller outputs. This amplifies the load on the sidechain even more dramatically.
+
 \end{enumerate}
 
-We believe UTXO model sidechains scale poorly for exchanges and therefore have constructed an account model sidechain.
+We believe the UTXO model sidechains scale poorly for exchanges and therefore have constructed an account model sidechain.
 
 \section{Gluon Plasma}
-We introduce a variant of plasma that is designed for high speed trading engines and avoids the issues of UTXO based plasma. Our plasma sidechain is designed with the following goals in mind:
+We introduce a variant of plasma that is designed for high speed trading engines and avoids the issues of UTXO based plasma sidechains. Our plasma sidechain is designed with the following goals in mind:
 \begin{enumerate}
     \item Account based
     \item Small footprint
@@ -242,34 +241,34 @@ We introduce a variant of plasma that is designed for high speed trading engines
     \item Incentive balanced
     \item Chain halt on data unavailability
 \end{enumerate}
-The custody of users’ assets on the plasma sidechain is managed by the Gluon plasma contract. The plasma contract serves as the interface for assets between the main chain and the plasma sidechain. 
+The custody of users’ assets on the plasma sidechain is managed by the Gluon contract. The Gluon contract serves as the interface for assets between the main chain and the plasma sidechain.
 
-The plasma contract also accepts fraud proofs and enforces correctness. Any proof of operator compromise may be submitted to the plasma contract which results in an immediate halt of the sidechain enabling withdrawal of funds at leisure. The plasma contract also enforces a chain halt to address data unavailability.
+The Gluon contract also accepts fraud proofs and enforces correctness. Any proof of operator compromise may be submitted to the Gluon contract which results in an immediate halt of the sidechain enabling withdrawal of funds at leisure. The Gluon contract also enforces a chain halt to address data unavailability.
 
-All other features not relating to custodial issues are not a concern for the plasma contract, enabling products that use the plasma sidechain to add features without the need to redeploy a new contract.
+All other features not relating to custodial issues are not considered concerns for the Gluon contract, enabling products that use the plasma sidechain to add features without the need to redeploy a new contract.
 \subsection{Gluon Plasma Outline}
 \begin{enumerate}
     \item Gluon plasma starts with a known zero state where all balances are zero.
-    \item Deposits to the main chain of an asset by user increase the user’s asset balance on the plasma sidechain by a corresponding amount. 
+    \item Deposits to the main chain of an asset by user increase the user’s asset balance on the plasma sidechain by a corresponding amount.
     \item Withdrawing funds from the plasma sidechain decrease the balance on the sidechain and enables withdrawal on the main chain.
-    \item Transfer of assets (trading) between users on the plasma sidechain require matching signed orders of the users, countersigned by the operator. 
-    \item All state changes require accompanying witnesses. Any invalid witness can be used to halt the plasma sidechain and let users withdraw at leisure. 
-    \item In the event of data unavailability, participants can vote to halt the sidechain, enabling users to withdraw on the main chain at leisure.
+    \item Transfer of assets (trading) between users on the plasma sidechain require matching signed orders of the users, countersigned by the operator.
+    \item All state changes require accompanying witnesses. Any invalid witness can be used to halt the plasma sidechain and let users withdraw at leisure.
+    \item In the event of data unavailability, participants can halt the sidechain, enabling users to withdraw on the main chain at leisure.
 \end{enumerate}
 
 \subsection{The Gluon Plasma Ledger}
 All state changes in the plasma sidechain are recorded in a ledger that enables verification of the provenance and validity of every single balance.
 \begin{enumerate}
-    \item The plasma sidechain state is maintained on its own ledger. The plasma sidechain starts with a known zero state, where all balances are zero. This is reflected by a special ledger entry called the $Origin$. 
-    \item Every state change creates a new ledger entry retaining a link to the prior entry that it invalidates. 
-    \item Every new ledger entry enforces trustless constraints of \emph{Segregation, Agency, Solvency} and \emph{Integrity}, whose validity can be independently verified by network participants. 
+    \item The plasma sidechain state is maintained on its own ledger. The plasma sidechain starts with a known zero state, where all balances are zero. This is reflected by a special ledger entry called the $Origin$.
+    \item Every state change creates a new ledger entry retaining a link to the prior entry that it invalidates.
+    \item Every new ledger entry enforces trustless constraints of \emph{Segregation, Agency, Solvency} and \emph{Integrity}, whose validity can be independently verified by network participants.
     \item Every ledger entry is signed by the operator. This reflects the fact that the operator is signing off on the changes.
-    \item The plasma contract will accept invalid entries signed by the operator as a fraud proof.
     \item Deposits in the main chain create a new ledger entry that reflects the user’s increased asset balance. 
     \item Ledger Entries are periodically committed to the main chain via Merkle roots. Each set of such transactions is called a \emph{Gluon Block} or \emph{G-block}. No transactions can be skipped or reordered. 
     \item All acceptable deposits occurring in a G-block are committed as an ordered Merkle root. 
+    \item The Gluon contract will accept invalid entries signed by the operator as a fraud proof.
     \item All current  balances of each Account/Asset pair are committed as a Merkle root.
-    \item The plasma contract enforces a minimum number of main chain blocks between each G-Block to ensure sufficient latency for a vote to halt. 
+    \item The Gluon contract enforces a minimum number of main chain blocks between each G-Block to ensure sufficient latency for a vote to halt.
     \item The last committed G-block is said to be \emph{unconfirmed} and cannot be used to initiate a withdrawal. It is open to challenges from validators. Once a newer G-Block is committed, the prior G-Block is deemed \emph{confirmed} and may be used to withdraw funds.
     \item Withdrawing some of the balance on the plasma sidechain reduces the asset balance on the sidechain and enables withdrawal from the main chain. This creates a corresponding ledger entry to reflect the reduced asset balance.
 \end{enumerate}
@@ -298,9 +297,9 @@ Each state change is recorded in a ledger entry that includes the following:
 
 \subsection{Ledger Entry types}
 There are six ledger entry types: $Origin$, $Deposit$, $Withdraw$, $Exited$, $Trade$ and $Fee$.
-The initial state, also known as $Origin$, is a special entry that records a universal zero balance. 
+The initial state, also known as $Origin$, is a special entry that records a universal zero balance.
 
-The $Deposit$ and $Withdraw$ entries are on and off ramps into the plasma contract. They increase and decrease the balance respectively. The $Exited$ entry type represents a permanent cessation of all activity for an \((Account, Asset)\) pair and reduces balance to zero. $Trade$ represents a trade of an asset pair between two accounts. $Fee$ represents fees paid to the operator.
+The $Deposit$ and $Withdraw$ entries are on and off ramps into the Gluon contract. They increase and decrease the balance respectively. The $Exited$ entry type represents a permanent cessation of all activity for an \((Account, Asset)\) pair and reduces balance to zero. $Trade$ represents a trade of an asset pair between two accounts. $Fee$ represents fees paid to the operator.
 
 \subsection{State Transitions}
 
@@ -339,13 +338,13 @@ Fig. \ref{plasmautxomodel} illustrates the coin flow when an Account $A_1$ depos
 
 The set of state changes has the signature of all parties plus the signature of the operator and is replicated among the network. The new states obsolete the old states, i.e., the balance at \(state_2: (A_1, Z_2) \) is spent/obsoleted by an updated balance at \(state_6: (A_1, Z_2)\). Further trades among the same assets update the existing balances to new states: if $A_2$ sells some more $Z_2$, $state_6$ will be updated to $state_{10}$. Additional non-obsoleted balance entries are created only when an account acquire an asset it did not previously own.
 
-The validity of a balance entry can be verified by tracing the integrity and witness data all the way back to the origin just like an UTXO system. Such tracing is expensive and impractical for any high-volume system. We take the same approach as blockchain based coins and amortize the cost by validating changes in real-time. 
+The validity of a balance entry can be verified by tracing the integrity and witness data all the way back to the origin just like a UTXO system. Such tracing is expensive and impractical for any high-volume system. We take the same approach as blockchain based coins and amortize the cost by validating changes in real-time.
 
 \subsection{Gluon Blocks}
-State transitions are organized into blocks that are committed to the plasma contract called \emph{Gluon Blocks} or \emph{G-Blocks} at regular intervals called \emph{submissionInterval}. The commitment contains the following:
+State transitions are organized into blocks that are committed to the Gluon contract called \emph{Gluon Blocks} or \emph{G-Blocks} at regular intervals called \emph{submissionInterval}. The commitment contains the following:
 
 \begin{table}[ht]
-\caption{Block Header committed to the main chain on the Gluon Plasma Smart Contract.}
+\caption{Block Header committed to the main chain on the Gluon Smart Contract.}
 \centering
 \begin{tabular}{|l|l|}
 \hline
@@ -355,16 +354,18 @@ $gBlockNumber$ & G-Block number, increasing positive integer \\
 $depositRoot$ & Ordered Merkle root of all valid deposits in this G-block \\ 
 $withdrawRoot$ & Merkle root of all withdraw entries in this G-block \\ 
 $balanceRoot$ & Merkle root of current balances snapshot as of this G-block\\ 
+$withdrawRoot$ & Merkle root of all withdraw entries in this G-block \\
+$balanceRoot$ & Merkle root of current balances snapshot as of this G-block\\
 
 \hline
 \end{tabular}
 \end{table}
 
-As users trade on the plasma sidechain, their balances change, and ledger entries are created to reflect every new balance. These balances are not yet in any G-Block and are considered to be in the \emph{Mempool}. These transactions are immediately eligible for fraud-proofs if the operator has shown fraudulent behavior. 
+As users trade on the plasma sidechain, their balances change, and ledger entries are created to reflect every new balance. These balances are not yet in any G-Block and are considered to be in the \emph{Mempool}. These transactions are immediately eligible for fraud-proofs if the operator has shown fraudulent behavior.
 
-The operator accumulates entries from the \emph{Mempool} and periodically commits the most recent transactions to the plasma contract as a new G-block. The most recent G-block committed is said to be \emph{unconfirmed} and not usable for withdrawal, since the operator may have generated it by including invalid entries. A minimum challenge period needs to elapse to give participants a chance to verify the new G-block or submit a vote to halt the sidechain in case of data unavailability. Once the period has elapsed and a new \emph{unconfirmed} G-block has been committed, the prior G-block is deemed \emph{confirmed} and can be used for withdrawals. A user may also withdraw funds by showing proof of the exit claim by providing the Merkle proof of its entry in a confirmed G-block.
+The operator accumulates entries from the \emph{Mempool} and periodically commits the most recent transactions to the Gluon contract as a new G-block. The most recent G-block committed is said to be \emph{unconfirmed} and not usable for withdrawal, since the operator may have generated it by including invalid entries. A minimum challenge period needs to elapse to give participants a chance to verify the new G-block or submit a vote to halt the sidechain in case of data unavailability. Once the period has elapsed and a new \emph{unconfirmed} G-block has been committed, the prior G-block is deemed \emph{confirmed} and can be used for withdrawals. A user may also withdraw funds by showing proof of the exit claim by providing the Merkle proof of its entry in a confirmed G-block.
 
-The root hashes above are also computed by network participants in real-time as new ledger entries are published. If the root hashes do not match the values committed to the plasma contract, there is a potential data unavailability issue and the participant can vote to halt. Naturally, participants should sync and obtain any missing entries if they have suffered from recent downtime or network disruption to avoid false signals.
+The root hashes above are also computed by network participants in real-time as new ledger entries are published. If the root hashes do not match the values committed to the Gluon contract, there is a potential data unavailability issue and the participant can vote to halt. Naturally, participants should sync and obtain any missing entries if they have suffered from recent downtime or network disruption to avoid false signals.
 
 \begin{table}[ht]
 \caption{Ledger entries from \emph{Mempool} are committed to G-blocks periodically. The last G-block committed (G-block 3) is unconfirmed and unavailable for withdrawal.}
@@ -386,70 +387,70 @@ TX 786 onwards \\
 \end{tabular}
 \end{table}
 
-If proof of operator compromise is submitted to the plasma contract, then all transactions in the unconfirmed G-block and Mempool are effectively rolled back. This prevents a maleficent operator from withdrawing funds using fake balances.
+If proof of operator compromise is submitted to the Gluon contract, then all transactions in the unconfirmed G-block and Mempool are effectively rolled back. This prevents a maleficent operator from withdrawing funds using fake balances.
 
 \section{Characteristics of Gluon Plasma}
 \subsection{Account Based}
-Account based plasma can be seen as a structural constraint of having only one UTXO per asset per account called the \emph{balance}. 
+Account based plasma can be seen as a structural constraint of having only one UTXO per asset per account called the \emph{balance}.
 
 When a recipient receives funds, the balance of that asset type is also spent, resulting in a new unspent balance output whose value is the sum of the spent balance and received funds.
 
-This concept collapses the multi-branch UTXO graph into a single chain and allows us to reason about account safety in far simpler terms and create a comprehensive set of simple and compact fraud proofs. 
+This concept collapses the multi-branch UTXO graph into a single chain and allows us to reason about account safety in far simpler terms and create a comprehensive set of simple and compact fraud proofs.
 
-The external address that deposits the funds can be used as an account identifier enabling seamless enforcement of \emph{Segregation} and \emph{Agency} constraints. 
+The external address that deposits the funds can be used as an account identifier enabling seamless enforcement of \emph{Segregation} and \emph{Agency} constraints.
 
 This approach also simplifies fraud proofs and orchestration of transactions:
 
 \begin{enumerate}
-    \item \emph{No UTXO Shredding.} Even with millions of matches, the user only has one balance per asset instead of the millions that would need to be managed in a pure UTXO system. 
-    \item \emph{Predictable  Sidechain Characteristics.} For example, we can compute bounds for exiting to the main chain in case of a compromise, which is simply the product of the number of users and assets. 
-    \item \emph{Compact Transactions.} Instead of picking the best set of UTXOs to fit the size of the trade and assemble them into acceptable transaction sizes, we simply have fixed size transactions. 
+    \item \emph{No UTXO Shredding.} Even with millions of matches, the user only has one balance per asset instead of the millions that would need to be managed in a pure UTXO system.
+    \item \emph{Predictable  Sidechain Characteristics.} For example, we can compute bounds for exiting to the main chain in case of a compromise, which is simply the product of the number of users and assets.
+    \item \emph{Compact Transactions.} Instead of picking the best set of UTXOs to fit the size of the trade and assemble them into acceptable transaction sizes, we simply have fixed size transactions.
     \item \emph{Compact Proof-of-Ownership.} We do not require a chain of signatures from the creation of the UTXO into the plasma sidechain or periodic consolidations in the main chain to manage UTXO bloat. The latest balance is the single source of truth.
-    \item \emph{Compact Fixed-Size Fraud-Proofs.} A later balance invalidates all prior balances. This enables compact, fixed-size fraud proofs that can be submitted to the plasma contract at predictable gas costs. 
+    \item \emph{Compact Fixed-Size Fraud-Proofs.} A later balance invalidates all prior balances. This enables compact, fixed-size fraud proofs that can be submitted to the Gluon contract at predictable gas costs.
 \end{enumerate}
 
 \subsection{Small Footprint}
-One of the important distinctions of Gluon plasma versus other DEX is the small footprint in terms of state required on both the main chain and the plasma sidechain. The main chain footprint is limited to deposits, withdrawals and periodic commitments of the plasma sidechain. The commitments are a constant cost and do not change with trade volume or user activity. Deposits and withdrawals costs are similar to centralized exchanges. 
-On the plasma sidechain, since every new balance invalidates the prior balance, validating nodes do not need to hold the the full sidechain history. 
+One of the important distinctions of Gluon plasma versus other DEX implementations is the small footprint in terms of state required on both the main chain and the plasma sidechain. The main chain footprint is limited to deposits, withdrawals and periodic commitments of the plasma sidechain. The commitments are a constant cost and do not change with trade volume or user activity. Deposits and withdrawals costs are similar to centralized exchanges.
+
+On the plasma sidechain, since every new balance invalidates the prior balance, validating nodes do not need to hold the full sidechain history.
 
 \subsection{Instant Finality}
-In coins with probabilistic finality (most POW and POS based coins) an observed transaction needs to be buried under work and/or time before it can be acted upon by an observer. For payment systems, a few seconds or even minutes may be acceptable for in-person transactions; much longer delays maybe acceptable for online transactions. In a trading application, finality must be instant, i.e., an observed transaction \emph{must} be accepted and actionable. This is because a filled transaction needs to trigger other actions, which when delayed can lead to losses. An example is setting stop orders when an entry order is filled or cancelling stop orders when a profit is taken. Having to wait even for a few seconds could mean the stop order cannot be set due to market movement.
 
-Instant finality is accomplished by having the operator sign each execution with the exchange operator’s private key. This key should not have access to any funds. 
+In coins with probabilistic finality (most POW and POS based coins) an observed transaction needs to be buried under work and/or time before it can be acted upon by an observer. For payment systems, a few seconds or even minutes may be acceptable for in-person transactions; much longer delays may be acceptable for online transactions. In a trading application, finality must be instant and an observed transaction \emph{must} be accepted and actionable. This is because a filled transaction needs to trigger other actions, which when delayed can lead to losses. An example is setting stop orders when an entry order is filled or cancelling stop orders when a profit is taken. Having to wait even a few seconds could mean the stop order cannot be set due to market movement.
 
-Instant finality also eliminates the “free option.” In systems where the two matched parties have to transmit the transaction to each other for mutual signatures, the trader who signs it last has a free option, where he can choose to sign only if the trade has moved in his favor. 
 
-Having the operator match and countersign user-signed orders also eliminates the need to be online during a match. Participants can treat the exchange as a central counterparty and the fills are non-interactive once orders are placed. Natural trading behavior such as placing an order and closing the laptop computer is fully supported. Complex order types such as OTO/OCO orders\cite{invOT} are greatly simplified by making the order execution non-interactive.
+Instant finality also eliminates the “free option.” In systems where the two matched parties have to transmit the transaction to each other for mutual signatures, the trader who signs it last has a free option, where he can choose to sign only if the trade has moved in his favor.
 
-While transfers within the sidechain have instant finality, transfers between main chain and sidechain have between 2 to 5 G-blocks to finality.
+Having the operator match and countersign user-signed orders also eliminates the need to be online during a match. Participants can treat the exchange as a central counterparty and the fills are non-interactive once orders are placed. Natural trading behavior such as placing an order and closing the application is fully supported. Complex order types such as OTO/OCO orders\cite{invOT} are greatly simplified by making the order execution non-interactive.
+
+While transfers within the sidechain have instant finality, transfers between main chain and the sidechain have between 2 to 5 G-blocks to achieve finality
 
 \subsection{Fast Withdrawal}
-Having a POA system also enables fast withdrawals in the substantial portion of the time when the operator is behaving normally. Any faulty withdrawal can be immediately detected by any observer who can submit a fraud proof to the plasma contract.
+Having a POA system increases the speed of withdrawals within the considerable amount of the time when the operator is behaving normally. Any faulty withdrawals can be immediately detected by any observer who can submit a fraud proof to the Gluon contract.
 
 \subsection{Compact Fraud-Proofs for Every Transition}
-While POA is the direct route to instant finality, the authority of the exchange needs to be strictly limited to the authorized intentions of market participants according to the publicly agreed upon rules of the system. The exchange should not permit users to trade amounts in excess of their balance or create fake balances out of nothing. If a user authorizes buying \numprint{1000} tokens for 1 ether by signing the order with their private key, then the operator should only be able to fill the order within those parameters. 
 
-Detection of any of these violations are simple, without undue burden of storage or computation on the part of the observer. We accomplish this by verifying the enforcement of all four trustless constraints for every state transition. On detecting any violations, the last valid state and the succeeding invalid state may be submitted to the plasma contract as a fraud-proof. The plasma contract halts the sidechain and enables all users to withdraw funds at leisure on submission of valid fraud-proofs.
+While POA is the direct route to instant finality, the authority of the exchange needs to be strictly limited to the authorized intentions of market participants according to the publicly agreed upon rules of the system. The exchange should not permit users to trade amounts in excess of their balance or create fake balances out of nothing. If a user authorizes buying \numprint{1000} tokens with 1 in their balance by signing the order with their private key, then the operator should only be able to fill the order within those parameters.
 
-Any aspect of the blockchain that can grow boundlessly with no or low cost will result in spam attacks and make verification onerous, causing only well-funded players to participate in the network. This includes proofs and therefore, proofs should be of constant size and easily computable. Fraud-proofs are of constant size when all information regarding correctness can be deduced from the combination of the prior state, change requests and the new state.
+Detection of any of these violations are simple, without undue burden of storage or computation on the part of the observer. We accomplish this by verifying the enforcement of all four trustless constraints for every state transition. On detecting any violations, the last valid state and the succeeding invalid state may be submitted to the Gluon contract as a fraud-proof. The Gluon contract halts the sidechain and enables all users to withdraw funds at leisure on submission of valid fraud-proofs.
 
-All validator proofs are non-interactive which makes operating a validator simple and cheap. 
+Any aspect of the blockchain that can grow boundlessly with no or low cost will result in spam attacks and make verification onerous, causing only well-funded players to participate in the network. This includes proofs and therefore proofs should be of a constant size and easily computable. Fraud-proofs are of constant size when all information regarding correctness can be deduced from the combination of the prior state, change requests and the new state.
+
+All validator proofs are non-interactive which makes operating a validator simple and cheap.
 
 \subsection{Non-onerous Safety}
-The cost of ensuring safety of the network should be cheap in terms of both effort and resources. Some plasma variants require users to check the plasma sidechain every week or so to ensure their funds are not stolen. This implies that withdrawals to main chain would take about two weeks. In contrast, Bitcoin and other classic cryptocurrencies require no verification of the blockchain to ensure your funds are not stolen. Onerous safety is equivalent to cheap attacks and vice-versa. Safety should rest on a very few actors acting honestly. In Gluon plasma, only one validator needs to be honest and present to prevent a compromised operator from stealing funds. 
+The cost of ensuring the safety of the network should be cheap in terms of both effort and resources. Some plasma variants require users to check the plasma sidechain every week or so to ensure their funds are not stolen. In contrast, Bitcoin and other classic cryptocurrencies require no verification of the blockchain to ensure your funds are not stolen. Onerous safety is equivalent to cheap attacks and vice-versa. Safety should require only a few actors acting honestly. In Gluon plasma, only one validator needs to be honest and present to prevent a compromised operator from stealing funds.
 
 \subsection{Congestion Tolerant}
-The protocol measures intervals in Gluon blocks where possible. This mitigates the effects of congestion on the main chain, enabling the plasma sidechain to continue operation mostly unaffected. Short downtimes can be accommodated without risk of protocol failure. 
+The protocol measures intervals in Gluon blocks where possible. This mitigates the effects of congestion on the main chain, enabling the plasma sidechain to continue operation mostly unaffected. Short downtimes can be accommodated without risk of protocol failure. This is more efficient than ZK Rollups which require additional time due to the computing time to generate a SNARK Proof and data optimization due to additional size. Additionally, optimistic rollups have limited throughput as compared to ZK-Rollups and Plasma.
 
 \subsection{Incentive Balanced}
-Incentive-balanced protocols where malicious actors have to expend resources and effort and normal users do not have to, are robust. The larger the incentive to cheat, the more expensive an action needs to be. In Gluon plasma, simple holding an asset is free.
+Incentive-balanced protocols where malicious actors have to expend resources and effort and normal users do not have to, are robust. The larger the incentive to cheat, the more expensive an action needs to be. In Gluon plasma, simple holding of an asset is free.
 
 \subsection{Chain Halt on Data Unavailability}
-The plasma sidechain can also be halted in case of data unavailability. Block withholding is an attack by the operator where blocks are created but some or all ledger entries are not broadcast. Block withholding can be detected but not proven since there is insufficient data available for fraud proof submission. Block withholding attacks are handled by users exiting their funds from the main chain. 
+The plasma sidechain can also be halted in case of data unavailability. Block withholding is an attack by the operator where blocks are created but some or all ledger entries are not broadcasted. Block withholding can be detected but not proven since there is insufficient data available for fraud proof submission. Block withholding attacks are handled by users exiting their funds from the main chain.
 
-\textbf{Voting.} This is accomplished by a threshold voting to halt the sidechain. To enable everyone to vote in a reasonable amount of time, the sidechain will be slowed based on the stake size that has chosen to vote. Since account sizes follow a power-law distribution and since the biggest accounts are likely to monitor the plasma sidechain, the very first or second large stake will push the next block by a few days giving others time to vote their stake. It takes just a few of the largest stakeholders to bring the sidechain to a halt.
-
-\textbf{Abandonment.} If the operator stops creating blocks for a very long time, the chain is said to be \emph{abandoned}, and a public method can be invoked on the plasma contract to halt the chain, allowing everyone to transfer funds to the main chain.
+\textbf{Abandonment.} Abandonment. If the operator stops creating blocks for a long period of time, the chain is said to be abandoned, and a public method can be invoked on the Gluon contract to halt the chain, allowing everyone to transfer funds to the main chain.
 
 \section{The Gluon Plasma Protocol}
 
@@ -461,19 +462,19 @@ The Gluon plasma protocol only cares about custody. It has the following element
     \item Withdrawal
     \item Exit Asset Balance
     \item Gluon Block Submission
-    \item Vote to Halt
     \item Halt Abandoned Chain
     \item Fraud Proofs
+    \item General Protocol Characteristics
 \end{enumerate}
 
-All protocol steps have state transitions that the operator needs to incorporate into the ledger by creating a new entry. These ledger entries contain witness data and are signed by the \emph{Operator}. These can be checked by any \emph{Validator} and a non-interactive fraud proof may be submitted to the plasma contract if the witness data is invalid. 
+All protocol steps have state transitions that the operator needs to incorporate into the ledger by creating a new entry. These ledger entries contain witness data and are signed by the \emph{Operator}. These can be checked by any \emph{Validator} and a non-interactive fraud proof may be submitted to the Gluon contract if the witness data is invalid.
 
 Users are normally only concerned with \emph{Deposit} and \emph{Withdrawal} steps. They will \emph{Reclaim Deposit} and \emph{Exit Asset Balance} on halted chains.
 
 \subsection{Deposit}\label{gp:deposit}
 \begin{mdframed}
 \begin{enumerate}
-    \item Account $A$ transfers quantity $N$ of asset $Z$ to plasma contract $C$. 
+    \item Account $A$ transfers quantity $N$ of asset $Z$ to Gluon contract $C$.
     \item $C$ computes the designated G-block $G$ in which this deposit would be committed\footnote{The deposit visibility is on a future G-block $G = G_{i+k}$; $k \geq 3$ is necessary to ensure sufficient main chain confirmations before the deposit is visible on the plasma sidechain.} on the plasma sidechain.
     \item $C$ computes and stores hash $H$ of \((A, Z, N, G, nonce)\).
     \item Operator $X$ creates a ledger entry $D$ referencing $H$ and crediting $N$ amount of $Z$ to $A$. $A$ can trade once $D$ is published.
@@ -482,7 +483,7 @@ Users are normally only concerned with \emph{Deposit} and \emph{Withdrawal} step
 \end{mdframed}
 
 
-\textbf{Remarks.} 
+\textbf{Remarks.}
 The operator creates \emph{Deposit} ledger entries for every deposit that it deems valid, signs them and publishes them on the plasma sidechain. These entries are committed to the main chain as $depositRoot$.
 
 \subsection{Reclaim Deposit}\label{gp:reclaim}
@@ -496,7 +497,7 @@ Account $A$ can reclaim an operator uncommitted deposit once $G$ is confirmed.
 \end{mdframed}
 
 \textbf{Remarks.}
-While any account can transfer any asset to the plasma contract, the operator will only add entries to the ledger for supported assets. Any unsupported assets will be ignored by the operator and the user should \emph{Reclaim Deposit} to retrieve them. An unacknowledged deposit is normal and not a griefing attack. 
+While any account can transfer any asset to the Gluon contract, the operator will only add entries to the ledger for supported assets. Any unsupported assets will be ignored by the operator and the user should \emph{Reclaim Deposit} to retrieve them. An unacknowledged deposit is normal and not a griefing attack.
 
 Ignoring unsupported tokens also eliminates some spam attacks. In addition, the operator may choose to ignore tiny deposits.
 
@@ -505,9 +506,9 @@ The ability to reclaim an unacknowledged deposit directly from the smart contrac
 \subsection{Withdrawal}\label{gp:withdrawal}
 \begin{mdframed}
 \begin{enumerate}
-    \item Account $A$ submits a signed withdrawal request for quantity $N$ of asset $Z$ to operator $X$ off-chain. 
+    \item Account $A$ submits a signed withdrawal request for quantity $N$ of asset $Z$ to operator $X$ off-chain.
     \item Operator $X$ creates a \emph{Withdraw} ledger entry $W$ that reflects the new reduced balance of \((A, Z)\) and publishes it. $A$ can withdraw once $W$ is in a confirmed G-block.
-    \item $A$ submits $W$ with inclusion proof \((W \in withdrawRoot)\) to plasma contract $C$. 
+    \item $A$ submits $W$ with inclusion proof \((W \in withdrawRoot)\) to Gluon contract $C$.
     \item $C$ verifies $W$ is valid and has not been already processed. $C$ stores hash of $W$ to prevent duplicate withdrawals and sends $N$ quantity of $Z$ to $A$ on main chain.
     \item If $W$ is not published within a reasonable time (griefing attack by $X$), $A$ should cancel all open orders for $Z$ and proceed to \emph{Exit Asset Balance}.
 \end{enumerate}
@@ -515,14 +516,14 @@ The ability to reclaim an unacknowledged deposit directly from the smart contrac
 
 
 \textbf{Remarks.}
-In normal operation, the user can withdraw very fast with the co-operation of the operator. From the user’s perspective, a withdraw request is submitted and approved after a short period of time following which, the user can withdraw the funds. 
+In normal operation, the user can withdraw very fast with the co-operation of the operator. From the user’s perspective, a withdraw request is submitted and approved after a short period of time following which, the user can withdraw the funds.
 
 \subsection{Exit Asset Balance}\label{gp:exit}
 \begin{mdframed}
 \begin{enumerate}
-    \item Account $A$ submits ledger entry $E$ for Asset $Z$ with inclusion proof (\(E \in balanceRoot\)) of the last confirmed G-block to plasma contract $C$. 
+    \item Account $A$ submits ledger entry $E$ for Asset $Z$ with inclusion proof (\(E \in balanceRoot\)) of the last confirmed G-block to Gluon contract $C$.
     \item $C$ registers the exit claim for $E$ in G-block $G_i$.
-    \item Operator $X$ cancels all open orders\footnote{Operator detects claims by monitoring events on the plasma contract.} and prevents further activity for \((A, Z)\).
+    \item Operator $X$ cancels all open orders\footnote{Operator detects claims by monitoring events on the Gluon contract.} and prevents further activity for \((A, Z)\).
     \item After $k$ G-blocks\footnote{\(k \geq 3\) is an implementation-specific parameter ensuring all transactions currently in the Mempool at the point of the initial exit claim are in a G-block.}, $A$ submits proof  of unchanged balance in the unconfirmed G-block $G_{i+k}$. (\(e \in G.balanceRoot; e \in G_{i+k}.balanceRoot\)).
     \item $C$ transfers balance of $Z$ to $A$ on main chain and marks \((A,Z)\) as $Exited$ by storing \(ExitBlock(A, Z) = G_{i+k}\) thus preventing all further activity for \((A, Z)\).
 \end{enumerate}
@@ -534,7 +535,7 @@ In normal operation, the user can withdraw very fast with the co-operation of th
 \subsection{Gluon Block Submission}\label{gp:block}
 \begin{mdframed}
 \begin{enumerate}
-    \item Operator $X$ sends new G-Block $G_{i+1}$ to plasma contract $C$.
+    \item Operator $X$ sends new G-Block $G_{i+1}$ to Gluon contract $C$.
     \item $C$ stores $G_{i+1}$:
     \begin{enumerate}
         \item Ensure $G_{i+1}$ is valid (expected G-block number).
@@ -547,45 +548,12 @@ In normal operation, the user can withdraw very fast with the co-operation of th
 \end{enumerate}
 \end{mdframed}
 
-\textbf{Remarks.} The operator must include all ledger entries since the last G-block without any omissions or reordering. The plasma contract enforces a minimum  of $submissionInterval$ main chain blocks between two G-blocks. 
-
-\subsection{Vote to Halt}\label{gp:vote2halt}
-\begin{mdframed}
-\begin{enumerate}
-    \item Account $A$ votes to halt chain by invoking \(halt()\) on staking contract $S$.
-    \item $S$ computes $voteSize$ and submits to $C$.
-    \begin{enumerate}
-        \item Let $voteSize$ = Tokens\footnote{Leverj uses LEV tokens for staking and governance.} staked by $A$
-        \item Reduce $A$’s stake balance by \(votingCost = voteSize \times votePrice\)
-        \item $S$ submits $votingCost$ to $C$.
-    \end{enumerate}
-    \item $C$ tallies votes and halts the plasma sidechain if threshold is met:
-    \begin{enumerate}
-        \item Update \(voteTally \mathrel{+}= voteSize\)
-        \item Update \(submissionBlock = delayFunc(voteTally)\)
-        \item Halt Chain if \(voteTally > haltThreshold\)
-    \end{enumerate}
-\end{enumerate}
-\end{mdframed}
-
-\textbf{Remarks.} Ledger entries and G-block commitments can be used as fraud-proofs to ensure chain fidelity. If the operator  withholds some or all entries from the committed block to prevent a fraud-proof submission, stake holders should vote to halt the chain.
-
-A polynomial function $delayFunc$ ensures that when even a small size of the stake votes to halt, the next G-Block is delayed significantly, giving observers and large stakeholders sufficient opportunity to vote to cross the halting threshold. 
-
-Votes are tallied in $voteTally$. The expected outcome is big stake holders such as market makers vote with minimal delay and reach the threshold quickly and halt the plasma sidechain.
-
-The parameter $haltThreshold$ (10\% of total supply) should be large enough that a random account shouldn’t be able to halt at will and disrupt the smooth functioning of the plasma sidechain but small enough that halting is highly likely if the largest four or five non-team stakeholders vote.
-
-The parameter $votePrice$ (around 10\%) determines the amount the halt invoker is willing to sacrifice to halt the sidechain. This should be low enough to be an acceptable alternative to a compromised operator but high enough to deter frivolous halts.
-
-A speedy halt enables orderly exit and appropriate action to be taken, including deploying a new contract (in case of a bug) or a total new deployment (in case of a security breach). The ideal values for these parameters are best determined empirically with halting games with test users.
-
-All voting schemes are tradeoffs and will never be perfect. Moving beyond voting into provable correctness that can be verified by the plasma contract itself is a research subject we are actively pursuing.
+\textbf{Remarks.} The operator must include all ledger entries since the last G-block without any omissions or reordering. The Gluon contract enforces a minimum  of $submissionInterval$ main chain blocks between two G-blocks.
 
 \subsection{Halt Abandoned Chain}\label{gp:abandon}
 \begin{mdframed}
 \begin{enumerate}
-    \item Account $A$ calls $abandon$ on  plasma contract $C$
+    \item Account $A$ calls $abandon$ on  Gluon contract $C$
     \item $C$ halts chain if \(block.number > submissionBlock + abandonPoint\)
 \end{enumerate}
 \end{mdframed}
@@ -593,7 +561,7 @@ All voting schemes are tradeoffs and will never be perfect. Moving beyond voting
 \textbf{Remarks.} The Gluon plasma system transitions among states on actions by the operator, validators or stakers voting to halt. This protocol step ensures that if all other actors  abandons the chain, a lone user can still transfer funds back to the main chain.
 
 \subsection{Fraud Proofs}
-The Gluon plasma smart contract is not aware of trades and real-time balances of any accounts but it does know about fraud proofs and how to enforce them. 
+The Gluon smart contract is not aware of trades and real-time balances of any accounts but it does know about fraud proofs and how to enforce them.
 
 The operator facilitates trades between buyers and sellers who submit their signed orders. The signature from their private key is essential to prove that the trade is duly authorized and trade execution is within the parameters authorized by the participants.
 
@@ -602,19 +570,20 @@ A trade execution contains the fill parameters and include both buy and sell ord
 The signatures and rules of the system are encoded as fraud proofs into the Gluon contract and security is predicated on having at least one honest validator able and willing to submit fraud proofs to the contract.
 
 \subsection{General Protocol Characteristics}
-\subsubsection{Spam Attacks}
-Flooding the plasma sidechain with \emph{Deposit} and \emph{Exit} requests is an unlikely attack vector, since the gas cost alone should be a discouragement for this attack. The net impact of a spam attack is reduced on-chain bandwidth for deposits and withdrawals.
+\subsubsection{Contract Logic Upgrade}
+Each Gluon app inherits the Gluon components for contract upgrades to be proposed and voting on proposals by the Stake app for a common Governance voting interface. Only an app's logic can be upgraded through this mechanism, thus maintaining the integrity of asset balances held by the app during the voting period. Staked tokens can vote to either approve or disapprove proposals. If a quorum of votes approving (less disapproving) an update is met then the app upgrade can be activated without delay, otherwise the proposal must wait until the activation block at which time the greater of approvals or disapprovals will determine the final state.
 
-Voting to halt costs a significant amount of governance tokens and should discourage careless voting or deliberate griefing.
+\subsubsection{Contract Migration}
+Should a full migration of the contract be required, both the app and the Gluon chain must be halted to preserve asset balances. The operator halts all activity and submits a G-Block containing the final transactions. After the mandatory block submission delay, an empty G-block is also committed, thereby confirming the prior G-block. It then moves the Gluon contract to a halted state. Users can use the \emph{Asset Balance Exit} protocol to extract and move funds to the migrated contract.
+
+\subsubsection{Halted State}
+The operator determines the cause of the halt and takes any necessary corrective action and starts a new sidechain. The old chain is abandoned and users move their funds to the new chain.
+
+\subsubsection{Spam Attacks}
+Flooding the plasma sidechain with \emph{Deposit} and \emph{Exit} requests is an unlikely attack vector, since the gas cost alone should is a discouragement for this attack. The net impact of a spam attack is reduced on-chain bandwidth for deposits and withdrawals.
 
 \subsubsection{Network Congestion/Server Temporarily Offline }
 If the operator is offline for a short duration of time (for maintenance or network/data center outage), balance updates, deposits and withdrawals can continue on the main chain but the corresponding ledger entries will be postponed until the operator comes back online.
-
-\subsubsection{Contract Upgrade}
-The operator halts all activity and submits a G-Block containing the final transactions. After the mandatory block submission delay, an empty G-block is also committed, thereby confirming the prior G-block. It then moves the plasma contract to a halted state. Users can use the \emph{Asset Balance Exit} protocol to extract and move funds to the upgraded contract.
-
-\subsubsection{Halted State}
-The operator determines the cause of the halt and takes any necessary corrective action and starts a new sidechain. The old chain is abandoned and users move their funds to the new chain. 
 
 \section{Gluon Plasma Fraud Proofs}
 
@@ -629,7 +598,7 @@ All fraud-proofs that require any operator signed ledger entry $e$ require verif
 \subsection{Gluon Protocol Frauds}
 
 \subsubsection{Block Commitment Frauds.}\label{fp:bcf}
-Data unavailability is detected as a mismatch between the observed ledger entries and their commitment. Validators compute commitment roots as they are published and if their commitment does not match the expected value, proceed to \emph{Vote to Halt}. This also works as a catch-all fraud proof in case a new fraud that can be detected but not proven is found after the plasma contract is live.
+Data unavailability is detected as a mismatch between the observed ledger entries and their commitment. Validators compute commitment roots as they are published and if their commitment does not match the expected value, proceed to \emph{Vote to Halt}. This also works as a catch-all fraud proof in case a new fraud that can be detected but not proven is found after the Gluon contract is live.
 
 
 \textbf{Deposit Commitment Mismatch.} Operator commits deposit in $depositRoot$ but does not create a corresponding \emph{Deposit} ledger entry.
@@ -662,8 +631,8 @@ M_B = G.balanceRoot
 \subsubsection{Invalid Deposit Fraud}\label{fp:idf}
 Operator creates a deposit entry with a fake, incorrect or already reclaimed deposit hash $H$ (i.e., credits an incorrect account, amount or asset) 
 
-\textbf{Proof.} 
-Operator signed \emph{Deposit} ledger entry $e$. The plasma contract $C$ cross-checks the entry hash as its own creation. An invalid deposit entry causes a chain halt.
+\textbf{Proof.}
+Operator signed \emph{Deposit} ledger entry $e$. The Gluon contract $C$ cross-checks the entry hash as its own creation. An invalid deposit entry causes a chain halt.
 
     \[ H = hash(e.account, e.asset, e.quantity, e.gBlock, e.nonce) \]
     \begin{equation}
@@ -683,7 +652,7 @@ Operator does not include the deposit ledger entry $e$ in $depositRoot$ enabling
 \subsubsection{Fake Withdraw Entry} \label{fp:fwe}
 Operator creates an unauthorized or fake \emph{Withdraw} entry. The operator cannot steal these funds but can grief a user and prevent them from trading. 
 
-\textbf{Proof.} Operator signed fake \emph{Withdraw} entry $e$. The plasma contract checks that the user signature does not match contents and chain is halted.
+\textbf{Proof.} Operator signed fake \emph{Withdraw} entry $e$. The Gluon contract checks that the user signature does not match contents and chain is halted.
 \begin{equation}
 ecrecover(e.accountsignature) = account
 \end{equation}
@@ -700,7 +669,7 @@ Exchange does not cancel \emph{Exited} orders, enabling trading without funds.
 \subsubsection{Fake Exit Fraud}\label{fp:fef}
 Operator creates a fake \emph{Exited} entry to grief the user.
 
-\textbf{Proof.} Operator signed Exited entry $e$. An exit (A,Z) is saved in the plasma contract and can be easily checked.
+\textbf{Proof.} Operator signed Exited entry $e$. An exit (A,Z) is saved in the Gluon contract and can be easily checked.
 \begin{equation}
     e.type=Exited \implies \exists ExitBlock(A,Z)
 \end{equation}
@@ -709,8 +678,8 @@ Operator creates a fake \emph{Exited} entry to grief the user.
 \subsubsection{Fake Signature Fraud} \label{fp:fsf}
 A maleficent operator can perform a skimming attack by creating fake orders of victim accounts. The operator may sign an account order with a fake API key\cite{levzkapi}. These orders may be used to pump prices or other forms of market manipulation.
 
-\textbf{Proof} 
-Any ledger entry $e$. An API key $originator$ for any account is verifiable by the plasma contract from API Key registry $R$. The fake order in the ledger entry would not have a valid signature of the account. To ensure that ledger entries are not created by a validator to fraudulently halt the chain, we have to also ensure that the ledger entry has been signed by the Operator.
+\textbf{Proof}
+Any ledger entry $e$. An API key $originator$ for any account is verifiable by the Gluon contract from API Key registry $R$. The fake order in the ledger entry would not have a valid signature of the account. To ensure that ledger entries are not created by a validator to fraudulently halt the chain, we have to also ensure that the ledger entry has been signed by the Operator.
 
 \begin{equation}ecrecover(e.buyorder) = e.buyorder.account\end{equation}
 \begin{equation}
@@ -720,10 +689,10 @@ ecrecover(e.sellorder) = e.sellorder.account
     R.translate(e.buyorder.originator) = e.buyorder.account
 \end{equation}
 \begin{equation}
-    R.translate(e.sellorder.originator) = e.sellorder.account    
+    R.translate(e.sellorder.originator) = e.sellorder.account
 \end{equation}
  
-\subsubsection{FEE Fraud} \label{fp:fee}
+\subsubsection{Fee Fraud} \label{fp:fee}
 The operator may give an excess fee to itself say, 100\% and steal everyone’s funds. The operator may also extract fees from an unauthorized asset or send the fee to an unauthorized recipient.
 
 \textbf{Proof.} 
@@ -770,7 +739,7 @@ When the ledger entries for a match are created, the operator may switch asset o
 Most recent entry $e$ and prior entry $p$ for account $A$. Balances should add up to quantities transacted; asset and account provenance should hold.
 \begin{equation}e.balance \geq 0\end{equation}
 \begin{equation}
-  e.balance = p.balance \pm e.quantity  
+  e.balance = p.balance \pm e.quantity
 \end{equation}
 \begin{equation}p.asset = e.asset\end{equation}
 \begin{equation}p.account = e.account\end{equation}
@@ -801,7 +770,7 @@ To front-run limit orders, the frontrunner would have to hold on to the victim o
 \textbf{Proof.} Recent entry $e$ and prior entry $p$ for the same asset and market side.
 
 \begin{equation}
-e.order.price \succcurlyeq p.order.price\footnote{We use the symbol $\succcurlyeq$ to denote same or worse price (higher buys and lower sells.)} \implies e.order.created > p.filltime    
+e.order.price \succcurlyeq p.order.price\footnote{We use the symbol $\succcurlyeq$ to denote same or worse price (higher buys and lower sells.)} \implies e.order.created > p.filltime
 \end{equation}
 
 For price-time priority fraud to work correctly, it is necessary to ensure that the exchange does not accept orders with a clock that is far beyond the skew tolerance that would weaken the price-time priority fraud.
@@ -847,7 +816,7 @@ Overfill and price-time priority proofs requires retaining references to the las
 \subsubsection{Adverserial} Spam attacks to overwhelm validators would require an attacker to create an excessive number of accounts since listing assets is controlled by the exchange. Requiring a minimum balance to trade, minimum withdrawal sizes and a reasonable tick size should ensure that validators are not spammed by millions of dust accounts. 
 
 \section*{Future Work}
-Zk-snarks or zk-starks may be a succinct alternative to a large set of separate proofs. A complete chain of proof-of-correctness exist between main-chain commitments. If these can be coalesced into a single compact proof that can be committed to the main-chain and verified by the plasma contract, the data unavailability problem can be eliminated, enabling us to eliminate unconfirmed blocks and voting to halt. This is an active research subject at the time of this writing.
+Zk-snarks or zk-starks may be a succinct alternative to a large set of separate proofs. A complete chain of proof-of-correctness exist between main-chain commitments. If these can be coalesced into a single compact proof that can be committed to the main-chain and verified by the Gluon contract, the data unavailability problem can be eliminated, enabling us to eliminate unconfirmed blocks and voting to halt. This is an active research subject at the time of this writing.
 
 The same plasma chain can support multiple operators who need to coordinate the plasma operations. These exchanges are incentivized by revenue sharing to share their unfilled orders with peer exchanges. Consequently, deposits and trades on the plasma chain will appear on all exchanges, mitigating the effects of downtime of a single exchange.
 
@@ -939,7 +908,7 @@ Let the digraph $G=(V,E)$ represent a payment network where $V$ is the set of me
 The set of all payment routes between $v_s$ and $v_t$ that $v_s$ can use to send a payment to $v_t$ is
 
 \begin{equation}
-  \Pi_s^t = \Pi_s \cap \Pi^t  
+  \Pi_s^t = \Pi_s \cap \Pi^t
 \end{equation}
 
 Let $P_i$ be the probability of loss of safety during payment forwarding at each node $v_i$ of any path $\Pi_i$ in $\Pi_s^t$.
@@ -981,13 +950,13 @@ A path consisting of a single directed edge or equivalent from the sender to  re
     \label{fig:custodystate}
 \end{figure}
 
-In Fig. \ref{fig:custodystate}, State $s_0$ represents funds on the main chain under direct control of the user's private key. States $s_1$ and $s_3$ represent funds on the plasma contract that the user can move back to $s_0$ without the need for any other parties. State $s_2$ represents uncommitted balance changes in the plasma chain. We prove continuous user custody by showing that the user can always move funds to $s_0$. 
+In Fig. \ref{fig:custodystate}, State $s_0$ represents funds on the main chain under direct control of the user's private key. States $s_1$ and $s_3$ represent funds on the Gluon contract that the user can move back to $s_0$ without the need for any other parties. State $s_2$ represents uncommitted balance changes in the plasma chain. We prove continuous user custody by showing that the user can always move funds to $s_0$.
 
-The user initiates a deposit into the plasma chain using the \emph{Deposit} step of the protocol, moving funds from $s_0$ to $s_1$. State $s_1$ represents funds deposited by the user into the Plasma smart contract waiting to be credited into the plasma chain by the operator. Funds on state $s_1$ will move to state $s_2$ after $k$ blocks. If not, the user can move funds back to $s_0$ using the \emph{Reclaim Deposit} step.
+The user initiates a deposit into the plasma chain using the \emph{Deposit} step of the protocol, moving funds from $s_0$ to $s_1$. State $s_1$ represents funds deposited by the user into the Gluon smart contract waiting to be credited into the plasma chain by the operator. Funds on state $s_1$ will move to state $s_2$ after $k$ blocks. If not, the user can move funds back to $s_0$ using the \emph{Reclaim Deposit} step.
 
 State $s_3$ represents committed balances on a confirmed plasma block. Confirmed changes can be moved to $s_0$ using the \emph{Withdrawal} or \emph{Exit Asset Balance} protocol steps.
 
-State $s_2$ represents funds on the actual plasma chain in unconfirmed blocks or the \emph{Mempool}. During normal operation of the chain, balance changes are periodically committed to the plasma contract and the funds move to state $s_3$ from where they can be moved as above. When the operator is compromised, the chain can be halted and state $s_2$ is effectively deleted. User funds remain in either $s_1$ or $s_3$ and can be directly moved to $s_0$. 
+State $s_2$ represents funds on the actual plasma chain in unconfirmed blocks or the \emph{Mempool}. During normal operation of the chain, balance changes are periodically committed to the Gluon contract and the funds move to state $s_3$ from where they can be moved as above. When the operator is compromised, the chain can be halted and state $s_2$ is effectively deleted. User funds remain in either $s_1$ or $s_3$ and can be directly moved to $s_0$.
 
 
 \newpage
