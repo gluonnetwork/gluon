@@ -1,6 +1,8 @@
+<p align="center"><img src="svgs/Gluon-Badge-520-Filled.svg" align=middle width="200px"/></p>
+
 # Gluon Plasma
 
-Gluon Plasma is plasma for non-custodial exchanges.
+Gluon Layer2 is a plasma variant for non-custodial exchanges and DeFi.
 
 <p align="center"><img src="svgs/state.svg" align=middle/></p>
 
@@ -43,37 +45,4 @@ etc. etc. most of the UX has been straightened out.
 5. All state changes require accompanying witnesses. Any invalid witness can be used to halt the plasma sidechain and let users withdraw at leisure.
 6. In the event of data unavailability, participants can vote to halt the sidechain,enabling users to withdraw on the main chain at leisure.
 
-# Protocol
-### Warning: This is not safe without the fraud proofs. Read full paper.
-
-
-## Deposit
-
-1. Account A transfers quantity N of asset Z to plasma contract C.
-2. C computes the designated G-block G in which this deposit would be committed on the plasma sidechain.
-3. C computes and stores hash H of(A, Z, N, G, nonce).
-4. Operator X creates a ledger entry D referencing H and crediting N amount of Z to A. A can trade once D is published.
-5. Operator X commits an ordered Merkle root depositRoot of all deposits for G-block G. Any ignored deposits need to be reclaimed by the user.
-
-## Reclaim Deposit
-1. A submits (A, Z, N, G, nonce) with exclusion proof (H /∈ depositRoot).
-2. C computes hash H of (A, Z, N, G, nonce) and verifies that H has not already been reclaimed and has been excluded from depositRoot of G.
-3.C marks H as reclaimed and transfers quantity N of asset Z to account A.
-
-## Withdrawal
-
-1. Account A submits a signed withdrawal request for quantity N of asset Z to operator X off-chain.
-2. Operator X creates a Withdraw ledger entry W that reflects the new reduced balance of(A, Z) and publishes it. A can withdraw once W is in a confirmed G-block.
-3.A submits W with inclusion proof(W∈ledgerRoot) to plasma contract C.
-4. C verifies W is valid and has not been already processed. C stores hash of W to prevent duplicate withdrawals and sends N quantity of Z to A on main chain.
-5. If W is not published within a reasonable time (griefing attack by X), A should cancel all open orders for Z and proceed to Exit Asset Balance.
-
-## Exit Asset Balance
-
-1. Account A submits ledger entry E for Asset Z with inclusion proof (E∈balanceRoot) of the last confirmed G-block to plasma contract C.
-2. C registers the exit claim for E in G-block Gi.
-3. Operator X cancels all open orders  and prevents further activity for(A, Z).
-4. After k G-blocks, A submits proof of unchanged balance in the unconfirmed G-block Gi+k. (e∈G.balanceRoot;e∈Gi+k.balanceRoot).
-5. C transfers balance of Z to A on main chain and marks(A, Z) as Exited by storing ExitBlock(A, Z) =Gi+k thus preventing all further activity for(A, Z).
-
-### See full paper for rest.
+### See full paper for full specification and fraud proofs.
