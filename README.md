@@ -7,6 +7,7 @@
 <b>Whitepaper:</b> 📝<a href="Gluon-Layer2.pdf">Gluon-Layer2.pdf</a></br>
 <b>Grants/Bounties:</b> 💻<a href="https://gluon.network/developers/">gluon.network/developers</a></br>
 <b>Issues/PRs:</b> 🐛<a href="https://github.com/gluonnetwork/whitepaper/issues/new">Improvements welcome</a></br>
+<b>Research:</b> ⚛︎<a href="https://ethresear.ch/t/gluon-plasma-full-spec-for-non-custodial-exchanges/3931">Ethresear.ch discussion</a></br>
 <b>Community:</b> 💬<a href="https://discord.com/invite/xpsjfwn">#Developers channel</a></br>
 <b>Explorer:</b> 🔎<a href="https://gluon.leverj.io/">Gluon Block Explorer</a></br>
 
